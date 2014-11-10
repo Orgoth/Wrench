@@ -1,6 +1,11 @@
 #!/usr/bin/env php
 <?php
 
+use Wrench\Server;
+use Wrench\Application\EchoApplication;
+use \Wrench\Application\StatusApplication;
+
+
 /* This program is free software. It comes without any warranty, to
  * the extent permitted by applicable law. You can redistribute it
  * and/or modify it under the terms of the Do What The Fuck You Want
@@ -15,7 +20,7 @@ require(__DIR__ . '/../lib/SplClassLoader.php');
 $classLoader = new SplClassLoader('Wrench', __DIR__ . '/../lib');
 $classLoader->register();
 
-$server = new \Wrench\Server('ws://localhost:8000/', array(
+$server = Server('ws://localhost:8000/', array(
     'allowed_origins'            => array(
         'mysite.localhost'
     ),
@@ -44,6 +49,6 @@ $server = new \Wrench\Server('ws://localhost:8000/', array(
 //     )
 ));
 
-$server->registerApplication('echo', new \Wrench\Application\EchoApplication());
-$server->registerApplication('status', new \Wrench\Application\StatusApplication());
+$server->registerApplication('echo', new EchoApplication());
+$server->registerApplication('status', new StatusApplication());
 $server->run();
