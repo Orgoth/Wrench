@@ -45,4 +45,5 @@ $server = new \Wrench\Server('ws://localhost:8000/', array(
 ));
 
 $server->registerApplication('echo', new \Wrench\Application\EchoApplication());
+$server->registerApplication('status', new \Wrench\Application\StatusApplication());
 $server->run();
