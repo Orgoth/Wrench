@@ -95,7 +95,7 @@ class Server extends Configurable
 
         parent::__construct($options);
 
-        $this->log('Server initialized', 'info');
+        $this->log('Server initialized on '.$uri, 'info');
     }
 
     /**
@@ -224,7 +224,9 @@ class Server extends Configurable
      */
     public function log($message, $priority = 'info')
     {
-        call_user_func($this->logger, $message, $priority);
+        $finalMessage = date('[G:i:s] ').$message;
+        
+        call_user_func($this->logger, $finalMessage, $priority);
     }
 
     /**
@@ -299,5 +301,7 @@ class Server extends Configurable
     public function registerApplication($key, $application)
     {
         $this->applications[$key] = $application;
+        
+        $this->log('Application added : '.$key, 'info');
     }
 }
