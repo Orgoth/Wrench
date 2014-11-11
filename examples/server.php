@@ -1,16 +1,15 @@
 #!/usr/bin/env php
 <?php
 
-use Wrench\Server;
-use Wrench\Application\EchoApplication;
-use \Wrench\Application\StatusApplication;
-
-
 /* This program is free software. It comes without any warranty, to
  * the extent permitted by applicable law. You can redistribute it
  * and/or modify it under the terms of the Do What The Fuck You Want
  * To Public License, Version 2, as published by Sam Hocevar. See
  * http://sam.zoy.org/wtfpl/COPYING for more details. */
+
+use Wrench\Server;
+use Wrench\Application\EchoApplication;
+use Wrench\Application\StatusApplication;
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
@@ -20,10 +19,10 @@ require(__DIR__ . '/../lib/SplClassLoader.php');
 $classLoader = new SplClassLoader('Wrench', __DIR__ . '/../lib');
 $classLoader->register();
 
-$server = Server('ws://localhost:8000/', array(
-    'allowed_origins'            => array(
+$server = Server('ws://localhost:8000/', [
+    'allowed_origins' => [
         'mysite.localhost'
-    ),
+    ],
 // Optional defaults:
 //     'check_origin'               => true,
 //     'connection_manager_class'   => 'Wrench\ConnectionManager',
@@ -47,8 +46,8 @@ $server = Server('ws://localhost:8000/', array(
 //             'connection_id_algo'     => 'sha512'
 //         )
 //     )
-));
+]);
 
-$server->registerApplication('echo', new EchoApplication());
-$server->registerApplication('status', new StatusApplication());
+$server->registerApplication('echo', new EchoApplication);
+$server->registerApplication('status', new StatusApplication);
 $server->run();
