@@ -245,10 +245,9 @@ class Connection extends Configurable
             $this->handshaked = true;
 
             $this->log(sprintf(
-                'Handshake successful: %s:%d (%s) connected to %s',
+                'Handshake successful: %s:%d connected to %s',
                 $this->getIp(),
                 $this->getPort(),
-                $this->getId(),
                 $path
             ), 'info');
 
@@ -450,11 +449,10 @@ class Connection extends Configurable
     public function log($message, $priority = 'info')
     {
         $this->manager->log(sprintf(
-            '%s: %s:%d (%s): %s',
+            '%s: %s:%d: %s',
             __CLASS__,
             $this->getIp(),
             $this->getPort(),
-            $this->getId(),
             $message
         ), $priority);
     }
