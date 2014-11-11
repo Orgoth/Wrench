@@ -183,18 +183,11 @@ class Connection extends Configurable
             rawurlencode($this->port)
         );
 
-        $algo = $this->options['connection_id_algo'];
-
-        if (extension_loaded('gmp')) {
-            $hash = hash($algo, $message);
-            $hash = gmp_strval(gmp_init('0x' . $hash, 16), 62);
-        } else {
-            // @codeCoverageIgnoreStart
-            $hash = hash($algo, $message);
-            // @codeCoverageIgnoreEnd
-        }
-
-        $this->id = $hash;
+        $this->id =
+            (extension_loaded('gmp'))
+            ? gmp_strval(gmp_init('0x' . hash($this->options['connection_id_algo'], $message), 16), 62)
+            : hash($this->options['connection_id_algo'], $message)
+        ;
     }
 
     /**
