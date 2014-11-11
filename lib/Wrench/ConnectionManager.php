@@ -154,7 +154,7 @@ class ConnectionManager extends Configurable implements Countable
     {
         $read             = $this->resources;
         $unused_write     = null;
-        $unsued_exception = null;
+        $unused_exception = null;
 
         stream_select(
             $read,
