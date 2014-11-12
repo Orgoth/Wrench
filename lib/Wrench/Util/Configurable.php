@@ -12,9 +12,9 @@ use \InvalidArgumentException;
 abstract class Configurable
 {
     /**
-     * @var array
+     * @var []
      */
-    protected $options = array();
+    protected $options = [];
 
     /**
      * @var Protocol

@@ -107,6 +107,8 @@ class Server extends Configurable
 
         parent::__construct($options);
 
+        $this->configure();
+        
         $this->log('Server initialized on '.$uri, 'info');
     }
 
@@ -122,14 +124,12 @@ class Server extends Configurable
      * @param array $options
      * @return void
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'connection_manager_class'   => 'Wrench\ConnectionManager',
-            'connection_manager_options' => array()
-        ), $options);
-
-        parent::configure($options);
+            'connection_manager_options' => []
+        ], $this->options));
 
         $this->configureConnectionManager();
         $this->configureLogger();
