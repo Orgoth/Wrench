@@ -113,8 +113,6 @@ class StatusApplication extends Application
             return false;
         }
         
-        var_dump(Server::getInstance()->getOptions());
-        
         $client->send($this->_encodeData('serverInfo', [
             'clientCount'           => $this->_serverClientCount,
             'clients'               => $this->_serverClients,
