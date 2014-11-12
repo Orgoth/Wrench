@@ -81,15 +81,27 @@ class Server extends Configurable
      * @var array<string => Application>
      */
     protected $applications = array();
-
+    
     /**
-     * Constructor
+     * Contains the instance for Singleton pattern
+     * 
+     * @var Server
+     */
+    private static $instance;
+
+    public function __construct()
+    {
+        
+    }
+    
+    /**
+     * Manual constructor
      *
      * @param string $uri Websocket URI, e.g. ws://localhost:8000/, path will
      *                     be ignored
      * @param array $options (optional) See configure
      */
-    public function __construct($uri, array $options = array())
+    public function init($uri, array $options = array())
     {
         $this->uri = $uri;
 
@@ -303,5 +315,14 @@ class Server extends Configurable
         $this->applications[$key] = $application;
         
         $this->log('Application added : '.$key, 'info');
+    }
+    
+    public static function getInstance()
+    {
+        if(self::$instance === null)
+        {
+            self::$instance = new self();
+        }
+        return self::$instance;
     }
 }

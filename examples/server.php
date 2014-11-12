@@ -19,7 +19,8 @@ require(__DIR__ . '/../lib/SplClassLoader.php');
 $classLoader = new SplClassLoader('Wrench', __DIR__ . '/../lib');
 $classLoader->register();
 
-$server = new Server('ws://localhost:8000/', [
+$server = Server::getInstance();
+$server->init('ws://localhost:8000/', [
     'allowed_origins' => [
         'mysite.localhost'
     ],
