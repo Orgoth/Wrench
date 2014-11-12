@@ -24,16 +24,15 @@ abstract class Configurable
     /**
      * Configurable constructor
      *
-     * @param string $uri     WebSocket URI, e.g. ws://example.org:8000/chat
-     * @param array  $options (optional)
+     * @param []  $options (optional)
      *   Options:
      *     - protocol             => Wrench\Protocol object, latest protocol
      *                                 version used if not specified
      */
     public function __construct(
-        array $options = array()
+        array $options = []
     ) {
-        $this->configure($options);
+        $this->configureOptions($options);
         $this->configureProtocol();
     }
 
@@ -42,11 +41,9 @@ abstract class Configurable
      *
      * @param array $options
      */
-    protected function configure(array $options)
+    protected function configureOptions(array $options = [])
     {
-        $this->options = array_merge(array(
-            'protocol' => new Rfc6455Protocol()
-        ), $options);
+        $this->options = $options;
     }
 
     /**
@@ -56,17 +53,74 @@ abstract class Configurable
      */
     protected function configureProtocol()
     {
-        $protocol = $this->options['protocol'];
+        $this->protocol = new Rfc6455Protocol();
 
-        if (!$protocol || !($protocol instanceof Protocol)) {
+        if (!$this->protocol || !($this->protocol instanceof Protocol)) {
             throw new InvalidArgumentException('Invalid protocol option');
         }
 
-        $this->protocol = $protocol;
     }
     
+    /**
+     * Set a defined option
+     * 
+     * @param string $name
+     * @param mixed $value
+     */
+    public function setOption($name, $value)
+    {
+        $this->options[$name] = $value;
+    }
+    
+    /**
+     * Gets all the options
+     * 
+     * @return []
+     */
     public function getOptions()
     {
         return $this->options;
+    }
+    
+    /**
+     * Gets a requested option
+     * 
+     * @param string $name
+     * @return mixed|boolean
+     */
+    public function getOption($name)
+    {
+        if($this->hasOption($name))
+        {
+            return $this->option[$name];
+        }
+        return false;
+    }
+    
+    /**
+     * Removes an option
+     * 
+     * @param string $name
+     * @return boolean
+     */
+    public function removeOption($name)
+    {
+        if($this->hasOption($name))
+        {
+            unset($this->options[$name]);
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Checks if a given option exists
+     * 
+     * @param string $name
+     * @return boolean
+     */
+    public function hasOption($name)
+    {
+        return isset($this->options[$name]);
     }
 }
