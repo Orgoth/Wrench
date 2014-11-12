@@ -4,7 +4,7 @@
     log = function(msg) {
       return $('#log').append("" + msg + "<br />");
     };
-    serverUrl = 'ws://127.0.0.1:8000/';
+    serverUrl = 'ws://127.0.0.1:8000/demo';
     if (window.MozWebSocket) {
       socket = new MozWebSocket(serverUrl);
     } else if (window.WebSocket) {

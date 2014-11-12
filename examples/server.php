@@ -52,6 +52,6 @@ $server->init('ws://localhost:8000/', [
 //     )
 ]);
 
-$server->registerApplication('echo', new EchoApplication);
+$server->registerApplication('demo', new EchoApplication);
 $server->registerApplication('status', new StatusApplication);
 $server->run();
