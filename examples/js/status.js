@@ -32,7 +32,7 @@
         cleanClientList();
         statusMsg({
             "type" : "warning",
-            "text" : '[' + d.getMonth() + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + "] Server Disconnected"
+            "text" : '[' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + "] Server Disconnected"
         });
       return $('#status').removeClass().addClass('offline').html('disconnected');
     };
