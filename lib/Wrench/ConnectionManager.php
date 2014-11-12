@@ -53,6 +53,8 @@ class ConnectionManager extends Configurable implements Countable
         $this->server = $server;
 
         parent::__construct($options);
+        
+        $this->configure();
     }
 
     /**
@@ -69,20 +71,18 @@ class ConnectionManager extends Configurable implements Countable
      *     - timeout_select          => int, seconds, default 0
      *     - timeout_select_microsec => int, microseconds (NB: not milli), default: 200000
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'socket_master_class'     => 'Wrench\Socket\ServerSocket',
-            'socket_master_options'   => array(),
+            'socket_master_options'   => [],
             'socket_client_class'     => 'Wrench\Socket\ServerClientSocket',
-            'socket_client_options'   => array(),
+            'socket_client_options'   => [],
             'connection_class'        => 'Wrench\Connection',
-            'connection_options'      => array(),
+            'connection_options'      => [],
             'timeout_select'          => self::TIMEOUT_SELECT,
             'timeout_select_microsec' => self::TIMEOUT_SELECT_MICROSEC
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
 
         $this->configureMasterSocket();
     }

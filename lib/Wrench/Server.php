@@ -91,7 +91,6 @@ class Server extends Configurable
 
     public function __construct()
     {
-        
     }
     
     /**

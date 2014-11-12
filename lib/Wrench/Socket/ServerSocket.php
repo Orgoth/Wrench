@@ -23,6 +23,13 @@ class ServerSocket extends UriSocket
      */
     protected $listening = false;
 
+    public function __construct($uri, array $options = [])
+    {
+        parent::__construct($uri, $options);
+        
+        $this->configure();
+    }
+    
     /**
      * @see Wrench\Socket.Socket::configure()
      *   Options include:
@@ -34,17 +41,15 @@ class ServerSocket extends UriSocket
      *     - ssl_passphrase        => string, passphrase for the key
      *     - timeout_accept        => int, seconds, default 5
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'backlog'               => 50,
             'ssl_cert_file'         => null,
             'ssl_passphrase'        => null,
             'ssl_allow_self_signed' => false,
             'timeout_accept'        => self::TIMEOUT_ACCEPT
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
     }
 
     /**
@@ -69,7 +74,6 @@ class ServerSocket extends UriSocket
                 $errno
             ));
         }
-
         $this->listening = true;
     }
 
@@ -98,13 +102,10 @@ class ServerSocket extends UriSocket
      */
     protected function getSocketStreamContextOptions()
     {
-        $options = array();
-
-        if ($this->options['backlog']) {
-            $options['backlog'] = $this->options['backlog'];
+        if (isset($this->options['backlog'])) {
+            return ['backlog' => $this->options['backlog']];
         }
-
-        return $options;
+        return [];
     }
 
     /**
@@ -112,7 +113,7 @@ class ServerSocket extends UriSocket
      */
     protected function getSslStreamContextOptions()
     {
-        $options = array();
+        $options = [];
 
         if ($this->options['server_ssl_cert_file']) {
             $options['local_cert'] = $this->options['server_ssl_cert_file'];
@@ -120,7 +121,6 @@ class ServerSocket extends UriSocket
                 $options['passphrase'] = $this->options['server_ssl_passphrase'];
             }
         }
-
         return $options;
     }
 }

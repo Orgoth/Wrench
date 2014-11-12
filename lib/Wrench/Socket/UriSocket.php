@@ -81,8 +81,6 @@ abstract class UriSocket extends Socket
      */
     protected function getStreamContext($listen = false)
     {
-        $options = array();
-
         if ($this->scheme == Protocol::SCHEME_UNDERLYING_SECURE
             || $this->scheme == Protocol::SCHEME_UNDERLYING) {
             $options['socket'] = $this->getSocketStreamContextOptions();
@@ -94,7 +92,7 @@ abstract class UriSocket extends Socket
 
         return stream_context_create(
             $options,
-            array()
+            []
         );
     }
 

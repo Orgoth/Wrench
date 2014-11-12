@@ -110,14 +110,14 @@ class Connection extends Configurable
     public function __construct(
         ConnectionManager $manager,
         ServerClientSocket $socket,
-        array $options = array()
+        array $options = []
     ) {
         $this->manager = $manager;
         $this->socket = $socket;
 
-
         parent::__construct($options);
 
+        $this->configure();
         $this->configureClientInformation();
         $this->configurePayloadHandler();
 
@@ -137,14 +137,12 @@ class Connection extends Configurable
     /**
      * @see Wrench\Util.Configurable::configure()
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'connection_id_secret' => 'asu5gj656h64Da(0crt8pud%^WAYWW$u76dwb',
             'connection_id_algo'   => 'sha512',
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
     }
 
     protected function configurePayloadHandler()

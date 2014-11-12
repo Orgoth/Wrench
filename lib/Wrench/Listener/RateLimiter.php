@@ -36,20 +36,19 @@ class RateLimiter extends Configurable implements Listener
     public function __construct(array $options = array())
     {
         parent::__construct($options);
+        $this->configure();
     }
 
     /**
      * @param array $options
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'connections'         => 200, // Total
             'connections_per_ip'  => 5,   // At once
             'requests_per_minute' => 200  // Per connection
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
     }
 
     /**

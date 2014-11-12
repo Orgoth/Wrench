@@ -87,13 +87,11 @@ abstract class Socket extends Configurable implements Resource
      * @param array $options
      * @return void
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'timeout_socket' => self::TIMEOUT_SOCKET,
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
     }
 
     /**

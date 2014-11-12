@@ -97,6 +97,7 @@ class Client extends Configurable
         $this->protocol->validateUri($this->uri);
         $this->protocol->validateOriginUri($this->origin);
 
+        $this->configure();
         $this->configureSocket();
         $this->configurePayloadHandler();
     }
@@ -107,14 +108,12 @@ class Client extends Configurable
      * @param array $options
      * @return void
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'socket_class'     => 'Wrench\\Socket\\ClientSocket',
             'on_data_callback' => null
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
     }
 
     /**

@@ -16,6 +16,13 @@ class ClientSocket extends UriSocket
      */
     const TIMEOUT_CONNECT = 2;
 
+    public function __construct($uri, array $options = array())
+    {
+        parent::__construct($uri, $options);
+        
+        $this->configure();
+    }
+    
     /**
      * @see Wrench\Socket.Socket::configure()
      *   Options include:
@@ -25,15 +32,13 @@ class ClientSocket extends UriSocket
      *                                 self-signed certs
      *     - timeout_connect       => int, seconds, default 2
      */
-    protected function configure(array $options)
+    protected function configure()
     {
-        $options = array_merge(array(
+        parent::configureOptions(array_merge([
             'timeout_connect'       => self::TIMEOUT_CONNECT,
             'ssl_verify_peer'       => false,
             'ssl_allow_self_signed' => true
-        ), $options);
-
-        parent::configure($options);
+        ], $this->options));
     }
 
     /**
