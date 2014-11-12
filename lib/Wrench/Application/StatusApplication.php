@@ -22,8 +22,8 @@ class StatusApplication extends Application
      */
     public function onConnect($client)
     {
-        $id = $client->getId();
-        $this->_clients[$id] = $client;
+        $this->_clients[$client->getId()] = $client;
+        $this->clientConnected($client->getIp(), $client->getPort());
         $this->_sendServerinfo($client);
     }
 
@@ -32,8 +32,8 @@ class StatusApplication extends Application
      */
     public function onDisconnect($client)
     {
-        $id = $client->getId();
-        unset($this->_clients[$id]);
+        $this->clientDisconnected($client->getIp(), $client->getPort());
+        unset($this->_clients[$client->getId()]);
     }
 
     public function onData($data, $client)
@@ -47,7 +47,6 @@ class StatusApplication extends Application
             $this->_serverInfo = $serverInfo;
             return true;
         }
-
         return false;
     }
 
@@ -115,10 +114,10 @@ class StatusApplication extends Application
         }
 
         $currentServerInfo                = $this->_serverInfo;
-        $currentServerInfo['clientCount'] = count($this->_serverClients);
+        $currentServerInfo['clientCount'] = $this->_serverClientCount;
         $currentServerInfo['clients']     = $this->_serverClients;
         $encodedData                      = $this->_encodeData('serverInfo', $currentServerInfo);
-
+        
         $client->send($encodedData);
     }
 
