@@ -1,15 +1,12 @@
 (function() {
   $(document).ready(function() {
     var clientActivity, clientConnected, clientDisconnected, log, refreshServerinfo, serverUrl, socket, statusMsg;
-    log = function(msg) {
+    var log = function(msg) {
       return $('#log').prepend("" + msg + "<br />");
     };
     serverUrl = 'ws://localhost:8000/status';
-    if (window.MozWebSocket) {
-      socket = new MozWebSocket(serverUrl);
-    } else if (window.WebSocket) {
-      socket = new WebSocket(serverUrl);
-    }
+    var socket = (window.MozWebSocket) ? new MozWebSocket(serverUrl) : new WebSocket(serverUrl);
+    
     socket.onopen = function(msg) {
       return $('#status').removeClass().addClass('online').html('connected');
     };
@@ -35,7 +32,7 @@
     $('#status').click(function() {
       return socket.close();
     });
-    statusMsg = function(msgData) {
+    var statusMsg = function(msgData) {
       switch (msgData.type) {
         case "info":
           return log(msgData.text);
@@ -43,15 +40,15 @@
           return log("<span class=\"warning\">" + msgData.text + "</span>");
       }
     };
-    clientConnected = function(data) {
+    var clientConnected = function(data) {
       $('#clientListSelect').append(new Option("" + data.ip + ":" + data.port, data.port));
       return $('#clientCount').text(data.clientCount);
     };
-    clientDisconnected = function(data) {
+    var clientDisconnected = function(data) {
       $("#clientListSelect option[value='" + data.port + "']").remove();
       return $('#clientCount').text(data.clientCount);
     };
-    refreshServerinfo = function(serverinfo) {
+    var refreshServerinfo = function(serverinfo) {
       var ip, port, _ref, _results;
       $('#clientCount').text(serverinfo.clientCount);
       $('#maxClients').text(serverinfo.maxClients);
