@@ -41,8 +41,8 @@
       }
     };
     var clientConnected = function(data) {
-      $('#clientListSelect').append(new Option("" + data.ip + ":" + data.port, data.port));
-      return $('#clientCount').text(data.clientCount);
+        addClientToList(data);
+        return $('#clientCount').text(data.clientCount);
     };
     var clientDisconnected = function(data) {
       $("#clientListSelect option[value='" + data.port + "']").remove();
@@ -58,10 +58,19 @@
       _results = [];
       for (port in _ref) {
         ip = _ref[port];
-        _results.push($('#clientListSelect').append(new Option(ip + ':' + port, port)));
+        addClientToList({"ip" : ip, "port" : port});
+        //_results.push($('#clientListSelect').append(new Option(ip + ':' + port, port)));
       }
       return _results;
     };
+    
+    var addClientToList = function(data)
+    {
+        if($("option[value='" + data.port + "']").length < 1){
+            $('#clientListSelect').append(new Option("" + data.ip + ":" + data.port, data.port));
+        }
+    }
+    
     return clientActivity = function(port) {
       return $("#clientListSelect option[value='" + port + "']").css("color", "red").animate({
         opacity: 100
