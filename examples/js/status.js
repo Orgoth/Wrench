@@ -27,6 +27,10 @@
       }
     };
     socket.onclose = function(msg) {
+        var d = new Date();
+        resetServerInformations();
+        cleanClientList();
+        statusMsg({"type" : "warning", "text" : '[' + d.getMonth() + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + "] Server Disconnected"});
       return $('#status').removeClass().addClass('offline').html('disconnected');
     };
     $('#status').click(function() {
@@ -44,10 +48,12 @@
         addClientToList(data);
         return $('#clientCount').text(data.clientCount);
     };
+    
     var clientDisconnected = function(data) {
-      $("#clientListSelect option[value='" + data.port + "']").remove();
+      removeClientFromList(data.port);
       return $('#clientCount').text(data.clientCount);
     };
+    
     var refreshServerinfo = function(serverinfo) {
       var ip, port, _ref, _results;
       $('#clientCount').text(serverinfo.clientCount);
@@ -59,17 +65,35 @@
       for (port in _ref) {
         ip = _ref[port];
         addClientToList({"ip" : ip, "port" : port});
-        //_results.push($('#clientListSelect').append(new Option(ip + ':' + port, port)));
       }
       return _results;
     };
     
+    var resetServerInformations = function()
+    {
+      $('#clientCount').text('');
+      $('#maxClients').text('');
+      $('#maxConnections').text('');
+      $('#maxRequetsPerMinute').text('');
+    };
+    
     var addClientToList = function(data)
     {
-        if($("option[value='" + data.port + "']").length < 1){
+        if($("option[value='" + data.port + "']").length < 1)
+        {
             $('#clientListSelect').append(new Option("" + data.ip + ":" + data.port, data.port));
         }
-    }
+    };
+    
+    var removeClientFromList = function(port)
+    {
+      $("#clientListSelect option[value='" + port + "']").remove();
+    };
+    
+    var cleanClientList = function()
+    {
+        $("#clientListSelect option").remove();
+    };
     
     return clientActivity = function(port) {
       return $("#clientListSelect option[value='" + port + "']").css("color", "red").animate({
