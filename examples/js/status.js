@@ -62,7 +62,7 @@
       $('#clientCount').text(serverinfo.clientCount);
       $('#maxClients').text(serverinfo.maxClients);
       $('#maxConnections').text(serverinfo.maxConnectionsPerIp);
-      $('#maxRequetsPerMinute').text(serverinfo.maxRequetsPerMinute);
+      $('#maxRequestsPerMinute').text(serverinfo.maxRequetsPerMinute);
       _ref = serverinfo.clients;
       _results = [];
       for (port in _ref) {
