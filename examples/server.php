@@ -24,6 +24,9 @@ $server->init('ws://localhost:8000/', [
     'allowed_origins' => [
         'mysite.localhost'
     ],
+    'maxClients' => 100,
+    'maxConnections' => 6,
+    'maxRequestsPerMinute' => 2000000
 // Optional defaults:
 //     'check_origin'               => true,
 //     'connection_manager_class'   => 'Wrench\ConnectionManager',
