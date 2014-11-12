@@ -3,6 +3,7 @@
 namespace Wrench\Application;
 
 use Wrench\Connection;
+use Wrench\Server;
 
 /**
  * Shiny WSS Status Application
@@ -24,7 +25,7 @@ class StatusApplication extends Application
     {
         $this->_clients[$client->getId()] = $client;
         $this->clientConnected($client->getIp(), $client->getPort());
-        $this->_sendServerinfo($client);
+        $this->_sendServerInfo($client);
     }
 
     /**
@@ -49,7 +50,6 @@ class StatusApplication extends Application
         }
         return false;
     }
-
 
     public function clientConnected($ip, $port)
     {
@@ -107,18 +107,21 @@ class StatusApplication extends Application
         $this->_sendAll($encodedData);
     }
 
-    private function _sendServerinfo($client)
+    private function _sendServerInfo($client)
     {
         if (count($this->_clients) < 1) {
             return false;
         }
-
-        $currentServerInfo                = $this->_serverInfo;
-        $currentServerInfo['clientCount'] = $this->_serverClientCount;
-        $currentServerInfo['clients']     = $this->_serverClients;
-        $encodedData                      = $this->_encodeData('serverInfo', $currentServerInfo);
         
-        $client->send($encodedData);
+        var_dump(Server::getInstance()->getOptions());
+        
+        $client->send($this->_encodeData('serverInfo', [
+            'clientCount'           => $this->_serverClientCount,
+            'clients'               => $this->_serverClients,
+            'maxClients'            => '',
+            'maxConnections'        => '',
+            'maxRequestsPerMinute'  => ''
+        ]));
     }
 
     private function _sendAll($encodedData)
