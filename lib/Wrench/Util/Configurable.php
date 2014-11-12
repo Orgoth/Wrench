@@ -64,4 +64,9 @@ abstract class Configurable
 
         $this->protocol = $protocol;
     }
+    
+    public function getOptions()
+    {
+        return $this->options;
+    }
 }
