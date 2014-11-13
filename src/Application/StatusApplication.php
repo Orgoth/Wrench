@@ -114,11 +114,14 @@ class StatusApplication extends Application
             return false;
         }
         
-        $serverOptions = Server::getInstance()->getOptions();
+        $server = Server::getInstance();
+        
+        $serverOptions = $server->getOptions();
+        $serverClients = $server->getConnectionManager()->getConvertedConnections();
         
         $client->send($this->_encodeData('serverInfo', [
-            'clientCount'           => $this->_serverClientCount,
-            'clients'               => $this->_serverClients,
+            'clientCount'           => count($serverClients),
+            'clients'               => $serverClients,
             'maxClients'            => $serverOptions['maxClients'],
             'maxConnections'        => $serverOptions['maxConnections'],
             'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute']

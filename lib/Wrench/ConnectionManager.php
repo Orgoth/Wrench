@@ -331,4 +331,22 @@ class ConnectionManager extends Configurable implements Countable
             array($connection->getSocket(), $connection)
         );
     }
+    
+    /**
+     * @return array
+     */
+    public function getConnections()
+    {
+        return $this->connections;
+    }
+    
+    public function getConvertedConnections()
+    {
+        $connections = [];
+        foreach($this->connections as $connection)
+        {
+            $connections[$connection->getPort()] = $connection->getIp();
+        }
+        return $connections;
+    }
 }
