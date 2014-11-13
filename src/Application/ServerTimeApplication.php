@@ -1,6 +1,8 @@
 <?php
 
-namespace Wrench\Application;
+namespace Application;
+
+use Wrench\Util\Application;
 
 /**
  * Example application demonstrating how to use Application::onUpdate

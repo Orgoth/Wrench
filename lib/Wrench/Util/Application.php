@@ -1,6 +1,6 @@
 <?php
 
-namespace Wrench\Application;
+namespace Wrench\Util;
 
 /**
  * Wrench Server Application

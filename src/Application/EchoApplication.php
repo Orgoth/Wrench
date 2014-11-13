@@ -1,9 +1,8 @@
 <?php
 
-namespace Wrench\Application;
+namespace Application;
 
-use Wrench\Application\Application;
-use Wrench\Application\NamedApplication;
+use Wrench\Util\Application;
 
 /**
  * Example application for Wrench: echo server
@@ -11,7 +10,7 @@ use Wrench\Application\NamedApplication;
 class EchoApplication extends Application
 {
     /**
-     * @see Wrench\Application.Application::onData()
+     * @see Wrench\Util\Application::onData()
      */
     public function onData($data, $client)
     {

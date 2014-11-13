@@ -8,8 +8,8 @@
  * http://sam.zoy.org/wtfpl/COPYING for more details. */
 
 use Wrench\Server;
-use Wrench\Application\EchoApplication;
-use Wrench\Application\StatusApplication;
+use Application\EchoApplication;
+use Application\StatusApplication;
 
 ini_set('display_errors', 1);
 error_reporting(E_ALL);

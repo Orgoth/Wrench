@@ -1,7 +1,8 @@
 <?php
 
-namespace Wrench\Application;
+namespace Application;
 
+use Wrench\Util\Application;
 use Wrench\Connection;
 use Wrench\Server;
 
