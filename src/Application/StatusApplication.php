@@ -15,9 +15,7 @@ use Wrench\Server;
 class StatusApplication extends Application
 {
     private $_clients           = array();
-    private $_serverClients     = array();
     private $_serverInfo        = array();
-    private $_serverClientCount = 0;
 
     /**
      * @param Connection $client
@@ -42,7 +40,7 @@ class StatusApplication extends Application
     {
         // currently not in use...
     }
-
+    
     public function setServerInfo($serverInfo)
     {
         if (is_array($serverInfo)) {
@@ -54,66 +52,44 @@ class StatusApplication extends Application
 
     public function clientConnected($ip, $port)
     {
-        $this->_serverClients[$port] = $ip;
-        $this->_serverClientCount++;
         $this->statusMsg('Client connected: ' . $ip . ':' . $port);
 
-        $data = array(
-            'ip' => $ip,
-            'port' => $port,
-            'clientCount' => $this->_serverClientCount,
-        );
-
-        $encodedData = $this->_encodeData('clientConnected', $data);
-
-        $this->_sendAll($encodedData);
+        $this->_sendAll($this->_encodeData('clientConnected', [
+            'ip'          => $ip,
+            'port'        => $port,
+            'clientCount' => count(Server::getInstance()
+                             ->getConnectionManager()
+                             ->getConvertedConnections()),
+        ]));
     }
 
     public function clientDisconnected($ip, $port)
     {
-        if (!isset($this->_serverClients[$port])) {
-            return false;
-        }
-
-        unset($this->_serverClients[$port]);
-
-        $this->_serverClientCount--;
         $this->statusMsg('Client disconnected: ' . $ip . ':' . $port);
 
-        $data = array(
-            'port' => $port,
-            'clientCount' => $this->_serverClientCount,
-        );
-
-        $encodedData = $this->_encodeData('clientDisconnected', $data);
-
-        $this->_sendAll($encodedData);
+        $this->_sendAll($this->_encodeData('clientDisconnected', [
+            'port'          => $port,
+            'clientCount'   => count(Server::getInstance()
+                               ->getConnectionManager()
+                               ->getConvertedConnections())
+        ]));
     }
 
     public function clientActivity($port)
     {
-        $encodedData = $this->_encodeData('clientActivity', $port);
-        $this->_sendAll($encodedData);
+        $this->_sendAll($this->_encodeData('clientActivity', $port));
     }
 
     public function statusMsg($text, $type = 'info')
     {
-        $data = array(
+        $this->_sendAll($this->_encodeData('statusMsg', [
             'type' => $type,
             'text' => '[' . strftime('%m-%d %H:%M', time()) . '] ' . $text,
-        );
-
-        $encodedData = $this->_encodeData('statusMsg', $data);
-
-        $this->_sendAll($encodedData);
+        ]));
     }
 
     private function _sendServerInfo($client)
     {
-        if (count($this->_clients) < 1) {
-            return false;
-        }
-        
         $server = Server::getInstance();
         
         $serverOptions = $server->getOptions();
