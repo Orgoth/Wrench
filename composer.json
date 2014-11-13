@@ -28,7 +28,8 @@
     },
     "autoload": {
         "psr-0": {
-            "Wrench": "lib/"
+            "Wrench": "lib/",
+            "Application": "src/"
         }
     },
     "extra": {

@@ -14,10 +14,7 @@ use Application\StatusApplication;
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
-require(__DIR__ . '/lib/SplClassLoader.php');
-
-$classLoader = new SplClassLoader('Wrench', __DIR__ . '/lib');
-$classLoader->register();
+$loader = require __DIR__ . '/vendor/autoload.php';
 
 $server = Server::getInstance();
 $server->init('ws://localhost:8000/', [
