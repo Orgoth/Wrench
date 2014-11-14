@@ -88,20 +88,28 @@ class StatusApplication extends Application
         ]));
     }
 
-    private function _sendServerInfo($client)
+    private function _sendServerInfo($client = null)
     {
         $server = Server::getInstance();
         
         $serverOptions = $server->getOptions();
         $serverClients = $server->getConnectionManager()->getConvertedConnections();
         
-        $client->send($this->_encodeData('serverInfo', [
+        $encodedData = $this->_encodeData('serverInfo', [
             'clientCount'           => count($serverClients),
             'clients'               => $serverClients,
             'maxClients'            => $serverOptions['maxClients'],
             'maxConnections'        => $serverOptions['maxConnections'],
             'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute']
-        ]));
+        ]);
+        
+        if($client === null)
+        {
+            $this->_sendAll($encodedData);
+            return true;
+        }
+        $client->send($encodedData);
+        return true;
     }
 
     private function _sendAll($encodedData)
