@@ -14,8 +14,7 @@ use Wrench\Server;
  */
 class StatusApplication extends Application
 {
-    private $_clients           = array();
-    private $_serverInfo        = array();
+    private $_clients = array();
 
     /**
      * @param Connection $client
@@ -39,15 +38,6 @@ class StatusApplication extends Application
     public function onData($data, $client)
     {
         // currently not in use...
-    }
-    
-    public function setServerInfo($serverInfo)
-    {
-        if (is_array($serverInfo)) {
-            $this->_serverInfo = $serverInfo;
-            return true;
-        }
-        return false;
     }
 
     public function clientConnected($ip, $port)
