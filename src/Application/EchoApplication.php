@@ -16,4 +16,6 @@ class EchoApplication extends Application
     {
         $client->send($data);
     }
+    
+    public abstract function onNotification();
 }

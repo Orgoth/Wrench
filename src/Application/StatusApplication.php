@@ -39,6 +39,10 @@ class StatusApplication extends Application
     {
         // currently not in use...
     }
+    
+    public function onNotification() {
+        $this->_sendServerInfo();
+    }
 
     public function clientConnected($ip, $port)
     {

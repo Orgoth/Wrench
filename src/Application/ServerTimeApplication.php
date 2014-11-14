@@ -15,26 +15,18 @@ class ServerTimeApplication extends Application
     protected $lastTimestamp = null;
 
     /**
-     * @see Wrench\Application.Application::onConnect()
+     * @see Wrench\Util.Application::onConnect()
      */
     public function onConnect($client)
     {
         $this->clients[] = $client;
     }
-
+    
     /**
-     * @see Wrench\Application.Application::onUpdate()
+     * @see Wrench\Util.Application::onDisconnect()
      */
-    public function onUpdate()
-    {
-        // limit updates to once per second
-        if(time() > $this->lastTimestamp) {
-            $this->lastTimestamp = time();
-
-            foreach ($this->clients as $sendto) {
-                $sendto->send(date('d-m-Y H:i:s'));
-            }
-        }
+    public function onDisconnect($connection) {
+        unset($this->clients[$connection->getPort()]);
     }
 
     /**
@@ -46,5 +38,19 @@ class ServerTimeApplication extends Application
     public function onData($payload, $connection)
     {
         return;
+    }
+    
+    /**
+     * @see Wrench\Util.Application::onNotification()
+     */
+    public function onNotification() {
+        // limit updates to once per second
+        if(time() > $this->lastTimestamp) {
+            $this->lastTimestamp = time();
+
+            foreach ($this->clients as $sendto) {
+                $sendto->send(date('d-m-Y H:i:s'));
+            }
+        }
     }
 }

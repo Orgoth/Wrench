@@ -10,19 +10,16 @@ abstract class Application
     /**
      * Optional: handle a connection
      */
-    // abstract public function onConnect($connection);
+    abstract public function onConnect($connection);
 
     /**
      * Optional: handle a disconnection
      *
      * @param
      */
-	// abstract public function onDisconnect($connection);
-
-    /**
-     * Optional: allow the application to perform any tasks which will result in a push to clients
-     */ 
-    // abstract public function onUpdate();
+    abstract public function onDisconnect($connection);
+    
+    abstract public function onNotification();
 
     /**
      * Handle data received from a client
