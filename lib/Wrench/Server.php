@@ -248,6 +248,24 @@ class Server extends Configurable
             call_user_func_array($listener, $arguments);
         }
     }
+    
+    /**
+     * Notifies applications of an event
+     * 
+     * @param string $type
+     * @param array $data
+     * @return void
+     */
+    public function notifyApplications($type, $data = [])
+    {
+        reset($this->applications);
+        
+        while($key = key($this->applications))
+        {
+            $this->applications[$key]->notify($type, $data);
+            next($this->applications);
+        }
+    }
 
     /**
      * Adds a listener
