@@ -8,11 +8,11 @@
     {
         public function clientConnected($data)
         {
-            $this->parent->_sendServerInfo();
+            $this->parent->clientConnected($data[1]->getIp(), $data[1]->getPort());
         }
 
         public function clientDisconnected($data)
         {
-            $this->parent->_sendServerInfo();
+            $this->parent->clientDisconnected($data[1]->getIp(), $data[1]->getPort());
         }
     }
