@@ -7,6 +7,9 @@ namespace Wrench\Util;
  */
 abstract class Application
 {
+    protected $events = [];
+    protected $eventManager;
+    
     /**
      * Optional: handle a connection
      */
@@ -19,7 +22,14 @@ abstract class Application
      */
     abstract public function onDisconnect($connection);
     
-    abstract public function onNotification();
+    
+    public function onNotification($type, $data)
+    {
+        if(isset($this->events[$type]))
+        {
+            $this->eventManager->{$this->events[$type]}($data);
+        }
+    }
 
     /**
      * Handle data received from a client
@@ -28,6 +38,13 @@ abstract class Application
      * @param Connection $connection
      */
     abstract public function onData($payload, $connection);
+    
+    public function __construct()
+    {
+        $this->setEventManager();
+    }
+    
+    abstract public function setEventManager();
         
     protected function _decodeData($data)
     {

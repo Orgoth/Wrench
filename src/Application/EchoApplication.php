@@ -9,6 +9,10 @@ use Wrench\Util\Application;
  */
 class EchoApplication extends Application
 {
+    public function onConnect($connection){}
+    
+    public function onDisconnect($connection){}
+    
     /**
      * @see Wrench\Util\Application::onData()
      */
@@ -17,5 +21,8 @@ class EchoApplication extends Application
         $client->send($data);
     }
     
-    public abstract function onNotification();
+    public function setEventManager()
+    {
+        
+    }
 }

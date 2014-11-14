@@ -327,11 +327,8 @@ class ConnectionManager extends Configurable implements Countable
         unset($this->connections[$index]);
         unset($this->resources[$index]);
 
-        $this->server->notify(
-            Server::EVENT_SOCKET_DISCONNECT,
-            array($connection->getSocket(), $connection)
-        );
-        $this->server->notify(Server::EVENT_SOCKET_DISCONNECT, array($connection->getSocket(), $connection));
+        $this->server->notify(Server::EVENT_SOCKET_DISCONNECT,array($connection->getSocket(), $connection));
+        $this->server->notifyApplications(Server::EVENT_SOCKET_DISCONNECT, array($connection->getSocket(), $connection));
     }
     
     /**

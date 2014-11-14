@@ -262,7 +262,7 @@ class Server extends Configurable
         
         while($key = key($this->applications))
         {
-            $this->applications[$key]->notify($type, $data);
+            $this->applications[$key]->onNotification($type, $data);
             next($this->applications);
         }
     }

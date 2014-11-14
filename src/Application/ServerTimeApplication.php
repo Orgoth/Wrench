@@ -14,6 +14,11 @@ class ServerTimeApplication extends Application
     protected $clients = array();
     protected $lastTimestamp = null;
 
+    public function setEventManager()
+    {
+        
+    }
+    
     /**
      * @see Wrench\Util.Application::onConnect()
      */
@@ -38,19 +43,5 @@ class ServerTimeApplication extends Application
     public function onData($payload, $connection)
     {
         return;
-    }
-    
-    /**
-     * @see Wrench\Util.Application::onNotification()
-     */
-    public function onNotification() {
-        // limit updates to once per second
-        if(time() > $this->lastTimestamp) {
-            $this->lastTimestamp = time();
-
-            foreach ($this->clients as $sendto) {
-                $sendto->send(date('d-m-Y H:i:s'));
-            }
-        }
     }
 }

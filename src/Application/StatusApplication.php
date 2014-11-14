@@ -6,6 +6,8 @@ use Wrench\Util\Application;
 use Wrench\Connection;
 use Wrench\Server;
 
+use Application\Events\StatusEvents;
+
 /**
  * Shiny WSS Status Application
  * Provides live server infos/messages to client/browser.
@@ -15,7 +17,17 @@ use Wrench\Server;
 class StatusApplication extends Application
 {
     private $_clients = array();
-
+    
+    protected $events = [
+        'socket_connect'    => 'clientConnected',
+        'socket_disconnect' => 'clientDisconnected'
+    ];
+    
+    public function setEventManager()
+    {
+        $this->eventManager = new StatusEvents($this);
+    }
+    
     /**
      * @param Connection $client
      */
@@ -38,10 +50,6 @@ class StatusApplication extends Application
     public function onData($data, $client)
     {
         // currently not in use...
-    }
-    
-    public function onNotification() {
-        $this->_sendServerInfo();
     }
 
     public function clientConnected($ip, $port)
@@ -82,7 +90,7 @@ class StatusApplication extends Application
         ]));
     }
 
-    private function _sendServerInfo($client = null)
+    public function _sendServerInfo($client = null)
     {
         $server = Server::getInstance();
         
@@ -106,7 +114,7 @@ class StatusApplication extends Application
         return true;
     }
 
-    private function _sendAll($encodedData)
+    public function _sendAll($encodedData)
     {
         if (count($this->_clients) < 1) {
             return false;
