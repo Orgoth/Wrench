@@ -52,7 +52,6 @@ class PayloadHandler extends Configurable
         }
 
         while ($data) { // Each iteration pulls off a single payload chunk
-            $size = strlen($data);
             $remaining = $this->payload->getRemainingData();
 
             // If we don't yet know how much data is remaining, read data into
