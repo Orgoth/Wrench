@@ -10,6 +10,8 @@ use Wrench\Resource;
 use \Closure;
 use \InvalidArgumentException;
 
+use Wrench\Service\MemoryManager;
+
 /**
  * WebSocket server
  *
@@ -74,6 +76,13 @@ class Server extends Configurable
      * @var ConnectionManager
      */
     protected $connectionManager;
+    
+    /**
+     * Memory manager
+     * 
+     * @var MemoryManager 
+     */
+    protected $memoryManager;
 
     /**
      * Applications
@@ -132,6 +141,7 @@ class Server extends Configurable
 
         $this->configureConnectionManager();
         $this->configureLogger();
+        $this->configureMemoryManager();
     }
 
     /**
@@ -160,6 +170,11 @@ class Server extends Configurable
         $this->connectionManager = new $this->options['connection_manager_class'](
             $this->options['connection_manager_options']
         );
+    }
+    
+    protected function configureMemoryManager()
+    {
+        $this->memoryManager = new MemoryManager();
     }
 
     /**
@@ -202,6 +217,7 @@ class Server extends Configurable
     public function run()
     {
         $this->connectionManager->listen();
+        $this->memoryManager->init();
 
         while (true) {
             /*
