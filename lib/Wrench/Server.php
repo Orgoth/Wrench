@@ -158,7 +158,7 @@ class Server extends Configurable
     protected function configureConnectionManager()
     {
         $this->connectionManager = new $this->options['connection_manager_class'](
-            $this, $this->options['connection_manager_options']
+            $this->options['connection_manager_options']
         );
     }
 

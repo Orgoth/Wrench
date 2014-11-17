@@ -10,16 +10,12 @@ use Wrench\Exception\Exception as WrenchException;
 use Wrench\Exception\CloseException;
 use \Exception;
 use \Countable;
+use Wrench\Server;
 
 class ConnectionManager extends Configurable implements Countable
 {
     const TIMEOUT_SELECT          = 0;
     const TIMEOUT_SELECT_MICROSEC = 200000;
-
-    /**
-     * @var Server
-     */
-    protected $server;
 
     /**
      * Master socket
@@ -45,13 +41,10 @@ class ConnectionManager extends Configurable implements Countable
     /**
      * Constructor
      *
-     * @param Server $server
      * @param array $options
      */
-    public function __construct(Server $server, array $options = array())
+    public function __construct(array $options = array())
     {
-        $this->server = $server;
-
         parent::__construct($options);
         
         $this->configure();
@@ -94,7 +87,7 @@ class ConnectionManager extends Configurable implements Countable
      */
     public function getApplicationForPath($path)
     {
-        return $this->server->getApplication(ltrim($path, '/'));
+        return Server::getInstance()->getApplication(ltrim($path, '/'));
     }
 
     /**
@@ -105,7 +98,7 @@ class ConnectionManager extends Configurable implements Countable
     protected function configureMasterSocket()
     {
         $this->socket = new $this->options['socket_master_class'](
-            $this->server->getUri(), $this->options['socket_master_options']
+            $this->getUri(), $this->options['socket_master_options']
         );
     }
 
@@ -189,13 +182,13 @@ class ConnectionManager extends Configurable implements Countable
         }
         catch (Exception $e)
         {
-            $this->server->log('Socket error: ' . $e, 'err');
+            $this->log('Socket error: ' . $e, 'err');
             return;
         }
 
         $connection = $this->createConnection($new);
-        $this->server->notify(Server::EVENT_SOCKET_CONNECT, [$new, $connection]);
-        $this->server->notifyApplications(Server::EVENT_SOCKET_CONNECT, [$new, $connection]);
+        Server::getInstance()->notify(Server::EVENT_SOCKET_CONNECT, [$new, $connection]);
+        Server::getInstance()->notifyApplications(Server::EVENT_SOCKET_CONNECT, [$new, $connection]);
     }
 
     /**
@@ -238,20 +231,28 @@ class ConnectionManager extends Configurable implements Countable
     {
         $connection = $this->getConnectionForClientSocket($socket);
 
-        if (!$connection) {
+        if (!$connection)
+        {
             $this->log('No connection for client socket', 'warning');
             return;
         }
 
-        try {
+        try
+        {
             $connection->process();
-        } catch (CloseException $e) {
+        }
+        catch (CloseException $e)
+        {
             $this->log('Client connection closed: ' . $e, 'notice');
             $connection->close($e);
-        } catch (WrenchException $e) {
+        }
+        catch (WrenchException $e)
+        {
             $this->log('Error on client socket: ' . $e, 'warning');
             $connection->close($e);
-        } catch (\InvalidArgumentException $e) {
+        }
+        catch (\InvalidArgumentException $e)
+        {
             $this->log('Wrong input arguments: ' . $e, 'warning');
             $connection->close($e);
         }
@@ -281,7 +282,7 @@ class ConnectionManager extends Configurable implements Countable
      */
     public function getUri()
     {
-        return $this->server->getUri();
+        return Server::getInstance()->getUri();
     }
 
     /**
@@ -292,19 +293,11 @@ class ConnectionManager extends Configurable implements Countable
      */
     public function log($message, $priority = 'info')
     {
-        $this->server->log(sprintf(
+        Server::getInstance()->log(sprintf(
             '%s: %s',
             __CLASS__,
             $message
         ), $priority);
-    }
-
-    /**
-     * @return \Wrench\Server
-     */
-    public function getServer()
-    {
-        return $this->server;
     }
 
     /**
@@ -316,11 +309,11 @@ class ConnectionManager extends Configurable implements Countable
     {
         $socket = $connection->getSocket();
 
-        if ($socket->getResource()) {
-            $index = $socket->getResourceId();
-        } else {
-            $index = array_search($connection, $this->connections);
-        }
+        $index = 
+            ($socket->getResource())
+            ? $socket->getResourceId()
+            : array_search($connection, $this->connections)
+        ;
 
         if (!$index) {
             $this->log('Could not remove connection: not found', 'warning');
@@ -329,8 +322,8 @@ class ConnectionManager extends Configurable implements Countable
         unset($this->connections[$index]);
         unset($this->resources[$index]);
 
-        $this->server->notify(Server::EVENT_SOCKET_DISCONNECT,array($connection->getSocket(), $connection));
-        $this->server->notifyApplications(Server::EVENT_SOCKET_DISCONNECT, array($connection->getSocket(), $connection));
+        Server::getInstance()->notify(Server::EVENT_SOCKET_DISCONNECT,array($connection->getSocket(), $connection));
+        Server::getInstance()->notifyApplications(Server::EVENT_SOCKET_DISCONNECT, array($connection->getSocket(), $connection));
     }
     
     /**
