@@ -96,13 +96,16 @@ class StatusApplication extends Application
         
         $serverOptions = $server->getOptions();
         $serverClients = $server->getConnectionManager()->getConvertedConnections();
+        $serverMemory = $server->getMemoryManager();
         
         $encodedData = $this->_encodeData('serverInfo', [
             'clientCount'           => count($serverClients),
             'clients'               => $serverClients,
             'maxClients'            => $serverOptions['maxClients'],
             'maxConnections'        => $serverOptions['maxConnections'],
-            'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute']
+            'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute'],
+            'currentMemory'         => $serverMemory->getCurrentMemory(),
+            'maxMemory'             => $serverMemory->getMaxMemory()
         ]);
         
         if($client === null)

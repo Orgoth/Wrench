@@ -63,6 +63,8 @@
       $('#maxClients').text(serverinfo.maxClients);
       $('#maxConnections').text(serverinfo.maxConnections);
       $('#maxRequestsPerMinute').text(serverinfo.maxRequestsPerMinute);
+      $('#currentMemory').text(serverinfo.currentMemory);
+      $('#maxMemory').text(serverinfo.maxMemory);
       _ref = serverinfo.clients;
       _results = [];
       for (port in _ref) {
@@ -78,6 +80,8 @@
       $('#maxClients').text('');
       $('#maxConnections').text('');
       $('#maxRequetsPerMinute').text('');
+      $('#currentMemory').text('');
+      $('#maxMemory').text('');
     };
     
     var addClientToList = function(data)

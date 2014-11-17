@@ -17,7 +17,7 @@
         
         public function init()
         {
-            $this->currentMemory = memory_get_usage(true);
+            $this->currentMemory = memory_get_usage(false);
             $this->initMaxMemory();
             Server::getInstance()->log("Current RAM : {$this->currentMemory}", 'info');
             Server::getInstance()->log("Max RAM : {$this->maxMemory}", 'info');

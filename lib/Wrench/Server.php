@@ -186,6 +186,16 @@ class Server extends Configurable
     {
         return $this->connectionManager;
     }
+    
+    /**
+     * Gets the memory manager
+     * 
+     * @return MemoryManager
+     */
+    public function getMemoryManager()
+    {
+        return $this->memoryManager;
+    }
 
     /**
      * @return string
