@@ -1,6 +1,6 @@
 <?php
 
-    namespace Application\Events;
+    namespace Application\ServerTime\Events;
     
     use Wrench\Util\Event;
     

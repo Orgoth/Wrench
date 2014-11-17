@@ -1,12 +1,12 @@
 <?php
 
-namespace Application;
+namespace Application\Status;
 
 use Wrench\Util\Application;
 use Wrench\Connection;
 use Wrench\Server;
 
-use Application\Events\StatusEvents;
+use Application\Status\Events\StatusEvents;
 
 /**
  * Shiny WSS Status Application

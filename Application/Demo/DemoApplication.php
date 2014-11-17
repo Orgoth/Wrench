@@ -1,13 +1,13 @@
 <?php
 
-namespace Application;
+namespace Application\Demo;
 
 use Wrench\Util\Application;
 
 /**
  * Example application for Wrench: echo server
  */
-class EchoApplication extends Application
+class DemoApplication extends Application
 {
     public function onConnect($connection){}
     

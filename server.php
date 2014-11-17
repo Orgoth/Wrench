@@ -8,8 +8,8 @@
  * http://sam.zoy.org/wtfpl/COPYING for more details. */
 
 use Wrench\Server;
-use Application\EchoApplication;
-use Application\StatusApplication;
+use Application\Demo\DemoApplication;
+use Application\Status\StatusApplication;
 
 $loader = require __DIR__ . '/vendor/autoload.php';
 
@@ -46,6 +46,6 @@ $server->init('ws://localhost:8000/', [
 //     )
 ]);
 
-$server->registerApplication('demo', new EchoApplication);
+$server->registerApplication('demo', new DemoApplication);
 $server->registerApplication('status', new StatusApplication);
 $server->run();
