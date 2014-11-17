@@ -28,12 +28,6 @@ use \RuntimeException;
  */
 class Connection extends Configurable
 {
-    /**
-     * The connection manager
-     *
-     * @var ConnectionManager
-     */
-    protected $manager;
 
     /**
      * Socket object
@@ -103,16 +97,13 @@ class Connection extends Configurable
     /**
      * Constructor
      *
-     * @param ConnectionManager  $manager
      * @param ServerClientSocket $socket
      * @param array              $options
      */
     public function __construct(
-        ConnectionManager $manager,
         ServerClientSocket $socket,
         array $options = []
     ) {
-        $this->manager = $manager;
         $this->socket = $socket;
 
         parent::__construct($options);
@@ -122,16 +113,6 @@ class Connection extends Configurable
         $this->configurePayloadHandler();
 
         $this->log('Connected');
-    }
-
-    /**
-     * Gets the connection manager of this connection
-     *
-     * @return \Wrench\ConnectionManager
-     */
-    public function getConnectionManager()
-    {
-        return $this->manager;
     }
 
     /**
@@ -176,7 +157,7 @@ class Connection extends Configurable
         $message = sprintf(
             '%s:uri=%s&ip=%s&port=%s',
             $this->options['connection_id_secret'],
-            rawurlencode($this->manager->getUri()),
+            rawurlencode(Server::getInstance()->getConnectionManager()->getUri()),
             rawurlencode($this->ip),
             rawurlencode($this->port)
         );
@@ -219,13 +200,15 @@ class Connection extends Configurable
 
             $this->headers = $headers;
             $this->queryParams = $params;
+            
+            $server = Server::getInstance();
 
-            $this->application = $this->manager->getApplicationForPath($path);
+            $this->application = $server->getConnectionManager()->getApplicationForPath($path);
             if (!$this->application) {
                 throw new BadRequestException('Invalid application');
             }
 
-            $this->manager->getServer()->notify(
+            $server->notify(
                 Server::EVENT_HANDSHAKE_REQUEST,
                 array($this, $path, $origin, $key, $extensions)
             );
@@ -249,7 +232,7 @@ class Connection extends Configurable
                 $path
             ), 'info');
 
-            $this->manager->getServer()->notify(
+            $server->notify(
                 Server::EVENT_HANDSHAKE_SUCCESSFUL,
                 array($this)
             );
@@ -435,7 +418,7 @@ class Connection extends Configurable
         }
 
         $this->socket->disconnect();
-        $this->manager->removeConnection($this);
+        Server::getInstance()->getConnectionManager()->removeConnection($this);
     }
 
     /**
@@ -446,7 +429,7 @@ class Connection extends Configurable
      */
     public function log($message, $priority = 'info')
     {
-        $this->manager->log(sprintf(
+        Server::getInstance()->getConnectionManager()->log(sprintf(
             '%s: %s:%d: %s',
             __CLASS__,
             $this->getIp(),

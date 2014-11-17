@@ -218,7 +218,7 @@ class ConnectionManager extends Configurable implements Countable
         $connection_options = $this->options['connection_options'];
 
         $socket = new $socket_class($resource, $socket_options);
-        $connection = new $connection_class($this, $socket, $connection_options);
+        $connection = new $connection_class($socket, $connection_options);
 
         $id = $this->resourceId($resource);
         $this->resources[$id] = $resource;
