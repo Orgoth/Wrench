@@ -11,9 +11,6 @@ use Wrench\Server;
 use Application\EchoApplication;
 use Application\StatusApplication;
 
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
-
 $loader = require __DIR__ . '/vendor/autoload.php';
 
 $server = Server::getInstance();
