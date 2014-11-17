@@ -402,18 +402,22 @@ class Connection extends Configurable
     public function close($code = Protocol::CLOSE_NORMAL)
     {
         try {
-            if (!$this->handshaked) {
-                $response = $this->protocol->getResponseError($code);
-                $this->socket->send($response);
-            } else {
-                $response = $this->protocol->getCloseFrame($code);
-                $this->socket->send($response);
+            if (!$this->handshaked)
+            {
+                $this->socket->send($this->protocol->getResponseError($code));
             }
-        } catch (Exception $e) {
+            else
+            {
+                $this->socket->send($this->protocol->getCloseFrame($code));
+            }
+        }
+        catch (Exception $e)
+        {
             $this->log('Unable to send close message', 'warning');
         }
 
-        if ($this->application && method_exists($this->application, 'onDisconnect')) {
+        if ($this->application && method_exists($this->application, 'onDisconnect'))
+        {
             $this->application->onDisconnect($this);
         }
 

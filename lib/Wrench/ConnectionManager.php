@@ -94,8 +94,7 @@ class ConnectionManager extends Configurable implements Countable
      */
     public function getApplicationForPath($path)
     {
-        $path = ltrim($path, '/');
-        return $this->server->getApplication($path);
+        return $this->server->getApplication(ltrim($path, '/'));
     }
 
     /**
@@ -105,9 +104,9 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function configureMasterSocket()
     {
-        $class   = $this->options['socket_master_class'];
-        $options = $this->options['socket_master_options'];
-        $this->socket = new $class($this->server->getUri(), $options);
+        $this->socket = new $this->options['socket_master_class'](
+            $this->server->getUri(), $this->options['socket_master_options']
+        );
     }
 
     /**
@@ -128,9 +127,9 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function getAllResources()
     {
-        return array_merge($this->resources, array(
+        return array_merge($this->resources, [
             $this->socket->getResourceId() => $this->socket->getResource()
-        ));
+        ]);
     }
 
     /**
@@ -164,12 +163,14 @@ class ConnectionManager extends Configurable implements Countable
             $this->options['timeout_select_microsec']
         );
 
-        foreach ($read as $socket) {
-            if ($socket == $this->socket->getResource()) {
+        foreach ($read as $socket)
+        {
+            if ($socket == $this->socket->getResource())
+            {
                 $this->processMasterSocket();
-            } else {
-                $this->processClientSocket($socket);
+                continue;
             }
+            $this->processClientSocket($socket);
         }
     }
 
@@ -180,18 +181,21 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function processMasterSocket()
     {
-        $new = null;
+        $new;
 
-        try {
+        try
+        {
             $new = $this->socket->accept();
-        } catch (Exception $e) {
+        }
+        catch (Exception $e)
+        {
             $this->server->log('Socket error: ' . $e, 'err');
             return;
         }
 
         $connection = $this->createConnection($new);
-        $this->server->notify(Server::EVENT_SOCKET_CONNECT, array($new, $connection));
-        $this->server->notifyApplications(Server::EVENT_SOCKET_CONNECT, array($new, $connection));
+        $this->server->notify(Server::EVENT_SOCKET_CONNECT, [$new, $connection]);
+        $this->server->notifyApplications(Server::EVENT_SOCKET_CONNECT, [$new, $connection]);
     }
 
     /**
@@ -210,15 +214,13 @@ class ConnectionManager extends Configurable implements Countable
         if (!$resource || !is_resource($resource)) {
             throw new InvalidArgumentException('Invalid connection resource');
         }
-
-        $socket_class = $this->options['socket_client_class'];
-        $socket_options = $this->options['socket_client_options'];
-
-        $connection_class = $this->options['connection_class'];
-        $connection_options = $this->options['connection_options'];
-
-        $socket = new $socket_class($resource, $socket_options);
-        $connection = new $connection_class($socket, $connection_options);
+        
+        $connection = new $this->options['connection_class'](
+            new $this->options['socket_client_class'](
+                $resource, $this->options['socket_client_options']
+            ),
+            $this->options['connection_options']
+        );
 
         $id = $this->resourceId($resource);
         $this->resources[$id] = $resource;

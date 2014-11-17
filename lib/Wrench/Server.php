@@ -157,9 +157,9 @@ class Server extends Configurable
      */
     protected function configureConnectionManager()
     {
-        $class   = $this->options['connection_manager_class'];
-        $options = $this->options['connection_manager_options'];
-        $this->connectionManager = new $class($this, $options);
+        $this->connectionManager = new $this->options['connection_manager_class'](
+            $this, $this->options['connection_manager_options']
+        );
     }
 
     /**
@@ -226,9 +226,7 @@ class Server extends Configurable
      */
     public function log($message, $priority = 'info')
     {
-        $finalMessage = date('[G:i:s] ').$message;
-        
-        call_user_func($this->logger, $finalMessage, $priority);
+        call_user_func($this->logger, date('[G:i:s] ').$message, $priority);
     }
 
     /**
