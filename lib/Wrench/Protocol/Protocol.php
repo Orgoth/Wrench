@@ -260,14 +260,10 @@ abstract class Protocol
      */
     public function generateKey()
     {
-        if (extension_loaded('openssl')) {
-            $key = openssl_random_pseudo_bytes(16);
-        } else {
-            // SHA1 is 128 bit (= 16 bytes)
-            $key = sha1(spl_object_hash($this) . mt_rand(0, PHP_INT_MAX) . uniqid('', true), true);
-        }
-
-        return base64_encode($key);
+        return base64_encode((extension_loaded('openssl')
+            ? openssl_random_pseudo_bytes(16)
+            : sha1(spl_object_hash($this) . mt_rand(0, PHP_INT_MAX) . uniqid('', true), true)
+        ));
     }
 
     /**
@@ -288,25 +284,21 @@ abstract class Protocol
      * @param string $origin Origin of the request
      * @return string
      */
-    public function getRequestHandshake(
-        $uri,
-        $key,
-        $origin,
-        array $headers = array()
-    ) {
-        if (!$uri || !$key || !$origin) {
+    public function getRequestHandshake($uri, $key, $origin, array $headers = array())
+    {
+        if (!$uri || !$key || !$origin)
+        {
             throw new InvalidArgumentException('You must supply a URI, key and origin');
         }
         
         list($scheme, $host, $port, $path, $query) = self::validateUri($uri);
         
-        if ($query) {
+        if ($query)
+        {
             $path .= '?' . $query;
         }
 
-        $handshake = array(
-            sprintf(self::REQUEST_LINE_FORMAT, $path)
-        );
+        $handshake = [sprintf(self::REQUEST_LINE_FORMAT, $path)];
 
         $headers = array_merge(
             $this->getDefaultRequestHeaders(
@@ -315,7 +307,8 @@ abstract class Protocol
             $headers
         );
 
-        foreach ($headers as $name => $value) {
+        foreach ($headers as $name => $value)
+        {
             $handshake[] = sprintf(self::HEADER_LINE_FORMAT, $name, $value);
         }
         return implode($handshake, "\r\n") . "\r\n\r\n";
@@ -335,7 +328,6 @@ abstract class Protocol
             ),
             $headers
         );
-
         return $this->getHttpResponse(self::HTTP_SWITCHING_PROTOCOLS, $headers);
     }
 
@@ -370,17 +362,16 @@ abstract class Protocol
      */
     protected function getHttpResponse($status, array $headers = array())
     {
-        if (array_key_exists($status, self::$httpResponses)) {
-            $response = self::$httpResponses[$status];
-        } else {
-            $response = self::$httpResponses[self::HTTP_NOT_IMPLEMENTED];
-        }
+        $response =
+            (array_key_exists($status, self::$httpResponses))
+            ? self::$httpResponses[$status]
+            : self::$httpResponses[self::HTTP_NOT_IMPLEMENTED]
+        ;
 
-        $handshake = array(
-            sprintf(self::RESPONSE_LINE_FORMAT, $status, $response)
-        );
+        $handshake = [sprintf(self::RESPONSE_LINE_FORMAT, $status, $response)];
 
-        foreach ($headers as $name => $value) {
+        foreach ($headers as $name => $value)
+        {
             $handshake[] = sprintf(self::HEADER_LINE_FORMAT, $name, $value);
         }
 
@@ -396,19 +387,22 @@ abstract class Protocol
      */
     public function validateResponseHandshake($response, $key)
     {
-        if (!$response) {
+        if (!$response)
+        {
             return false;
         }
 
         $headers = $this->getHeaders($response);
 
-        if (!isset($headers[self::HEADER_ACCEPT])) {
+        if (!isset($headers[self::HEADER_ACCEPT]))
+        {
             throw new HandshakeException('No accept header receieved on handshake response');
         }
 
         $accept = $headers[self::HEADER_ACCEPT];
 
-        if (!$accept) {
+        if (!$accept)
+        {
             throw new HandshakeException('Invalid accept header');
         }
 
@@ -437,10 +431,10 @@ abstract class Protocol
      * @param string $request
      * @throws BadRequestException
      */
-    public function validateRequestHandshake(
-        $request
-    ) {
-        if (!$request) {
+    public function validateRequestHandshake($request)
+    {
+        if (!$request)
+        {
             return false;
         }
 
@@ -452,53 +446,71 @@ abstract class Protocol
         $url = parse_url($this->validateRequestLine($request));
         $path = isset($url['path']) ? $url['path'] : null;
         $urlParams = array();
-        if (isset($url['query'])) {
+        if (isset($url['query']))
+        {
             parse_str($url['query'], $urlParams);
         }
 
-        if (empty($headers[self::HEADER_ORIGIN])) {
+        if (empty($headers[self::HEADER_ORIGIN]))
+        {
             throw new BadRequestException('No origin header');
-        } else {
+        }
+        else
+        {
             unset($extraHeaders[self::HEADER_ORIGIN]);
         }
 
         $origin = $headers[self::HEADER_ORIGIN];
 
         if (!isset($headers[self::HEADER_UPGRADE])
-                || strtolower($headers[self::HEADER_UPGRADE]) != self::UPGRADE_VALUE
-        ) {
+            || strtolower($headers[self::HEADER_UPGRADE]) != self::UPGRADE_VALUE
+        )
+        {
             throw new BadRequestException('Invalid upgrade header');
-        } else {
+        }
+        else
+        {
             unset($extraHeaders[self::HEADER_UPGRADE]);
         }
 
         if (!isset($headers[self::HEADER_CONNECTION])
-                || stripos($headers[self::HEADER_CONNECTION], self::CONNECTION_VALUE) === false
-        ) {
+            || stripos($headers[self::HEADER_CONNECTION], self::CONNECTION_VALUE) === false
+        )
+        {
             throw new BadRequestException('Invalid connection header');
-        } else {
+        }
+        else
+        {
             unset($extraHeaders[self::HEADER_CONNECTION]);
         }
 
-        if (!isset($headers[self::HEADER_HOST])) {
+        if (!isset($headers[self::HEADER_HOST]))
+        {
             // @todo Validate host == listening socket? Or would that break
             //        TCP proxies?
             throw new BadRequestException('No host header');
-        } else {
+        }
+        else
+        {
             unset($extraHeaders[self::HEADER_HOST]);
         }
 
-        if (!isset($headers[self::HEADER_VERSION])) {
+        if (!isset($headers[self::HEADER_VERSION]))
+        {
             throw new BadRequestException('No version header received on handshake request');
         }
 
-        if (!$this->acceptsVersion($headers[self::HEADER_VERSION])) {
+        if (!$this->acceptsVersion($headers[self::HEADER_VERSION]))
+        {
             throw new BadRequestException('Unsupported version: ' . $headers[self::HEADER_VERSION]);
-        } else {
+        }
+        else
+        {
             unset($extraHeaders[self::HEADER_VERSION]);
         }
 
-        if (!isset($headers[self::HEADER_KEY])) {
+        if (!isset($headers[self::HEADER_KEY]))
+        {
             throw new BadRequestException('No key header received');
         }
 
@@ -512,21 +524,24 @@ abstract class Protocol
 
         // Optional
         $protocol = null;
-        if (isset($headers[self::HEADER_PROTOCOL])) {
+        if (isset($headers[self::HEADER_PROTOCOL]))
+        {
             $protocol = $headers[self::HEADER_PROTOCOL];
             unset($extraHeaders[self::HEADER_PROTOCOL]);
         }
 
-        $extensions = array();
-        if (!empty($headers[self::HEADER_EXTENSIONS])) {
+        $extensions = [];
+        if (!empty($headers[self::HEADER_EXTENSIONS]))
+        {
             $extensions = $headers[self::HEADER_EXTENSIONS];
-            if (is_scalar($extensions)) {
-                $extensions = array($extensions);
+            if (is_scalar($extensions))
+            {
+                $extensions = [$extensions];
             }
         }
         unset($extraHeaders[self::HEADER_EXTENSIONS]);
 
-        return array($path, $origin, $key, $extensions, $protocol, $extraHeaders, $urlParams);
+        return [$path, $origin, $key, $extensions, $protocol, $extraHeaders, $urlParams];
     }
 
     /**
@@ -548,10 +563,9 @@ abstract class Protocol
             $code = self::CLOSE_UNEXPECTED;
         }
 
-        $body = pack('n', $code) . self::$closeReasons[$code];
-
-        $payload = $this->getPayload();
-        return $payload->encode($body, self::TYPE_CLOSE);
+        return $this->getPayload()->encode(
+            pack('n', $code) . self::$closeReasons[$code], self::TYPE_CLOSE
+        );
     }
 
     /**
@@ -562,8 +576,8 @@ abstract class Protocol
      */
     public function validateUri($uri)
     {
-        $uri = (string)$uri;
-        if (!$uri) {
+        if (!$uri)
+        {
             throw new InvalidArgumentException('Invalid URI');
         }
 
@@ -571,23 +585,22 @@ abstract class Protocol
         $this->validateScheme($scheme);
 
         $host = parse_url($uri, PHP_URL_HOST);
-        if (!$host) {
+        if (!$host)
+        {
             throw new InvalidArgumentException("Invalid host");
         }
 
-        $port = parse_url($uri, PHP_URL_PORT);
-        if (!$port) {
+        if (($port = parse_url($uri, PHP_URL_PORT)) === false)
+        {
             $port = $this->getPort($scheme);
         }
 
-        $path = parse_url($uri, PHP_URL_PATH);
-        if (!$path) {
+        if (($path = parse_url($uri, PHP_URL_PATH)) === false)
+        {
             throw new InvalidArgumentException('Invalid path');
         }
         
-        $query = parse_url($uri, PHP_URL_QUERY);
-
-        return array($scheme, $host, $port, $path, $query);
+        return [$scheme, $host, $port, $path, parse_url($uri, PHP_URL_QUERY)];
     }
 
     /**
@@ -599,25 +612,26 @@ abstract class Protocol
      */
     public function validateSocketUri($uri)
     {
-        $uri = (string)$uri;
-        if (!$uri) {
+        if (!$uri)
+        {
             throw new InvalidArgumentException('Invalid URI');
         }
 
-        $scheme = parse_url($uri, PHP_URL_SCHEME);
-        $scheme = $this->validateScheme($scheme);
+        $scheme = $this->validateScheme(
+            parse_url($uri, PHP_URL_SCHEME)
+        );
 
-        $host = parse_url($uri, PHP_URL_HOST);
-        if (!$host) {
+        if (($host = parse_url($uri, PHP_URL_HOST)) === false)
+        {
             throw new InvalidArgumentException("Invalid host");
         }
 
-        $port = parse_url($uri, PHP_URL_PORT);
-        if (!$port) {
+        if (($port = parse_url($uri, PHP_URL_PORT)) === false)
+        {
             $port = $this->getPort($scheme);
         }
 
-        return array($scheme, $host, $port);
+        return [$scheme, $host, $port];
     }
 
     /**
@@ -629,18 +643,18 @@ abstract class Protocol
      */
     public function validateOriginUri($origin)
     {
-        $origin = (string)$origin;
-        if (!$origin) {
+        if (!$origin)
+        {
             throw new InvalidArgumentException('Invalid URI');
         }
 
-        $scheme = parse_url($origin, PHP_URL_SCHEME);
-        if (!$scheme) {
+        if (($scheme = parse_url($origin, PHP_URL_SCHEME)) === false)
+        {
             throw new InvalidArgumentException('Invalid scheme');
         }
 
-        $host = parse_url($origin, PHP_URL_HOST);
-        if (!$host) {
+        if (($host = parse_url($origin, PHP_URL_HOST)) === false)
+        {
             throw new InvalidArgumentException("Invalid host");
         }
 
@@ -655,9 +669,13 @@ abstract class Protocol
      */
     protected function validateRequestLine($line)
     {
-        $matches = array(0 => null, 1 => null);
+        $matches = [
+            0 => null,
+            1 => null
+        ];
 
-        if (!preg_match(self::REQUEST_LINE_REGEX, $line, $matches) || !$matches[1]) {
+        if (!preg_match(self::REQUEST_LINE_REGEX, $line, $matches) || !$matches[1])
+        {
             throw new BadRequestException('Invalid request line', 400);
         }
 
@@ -690,29 +708,37 @@ abstract class Protocol
     {
         $parts = explode("\r\n\r\n", $response, 2);
 
-        if (count($parts) != 2) {
-            $parts = array($parts, '');
+        if (count($parts) != 2)
+        {
+            $parts = [$parts, ''];
         }
 
         list($headers, $body) = $parts;
 
         $return = array();
-        foreach (explode("\r\n", $headers) as $header) {
+        foreach (explode("\r\n", $headers) as $header)
+        {
             $parts = explode(': ', $header, 2);
-            if (count($parts) == 2) {
+            if (count($parts) == 2)
+            {
                 list($name, $value) = $parts;
-                if (!isset($return[$name])) {
+                if (!isset($return[$name]))
+                {
                     $return[$name] = $value;
-                } else {
-                    if (is_array($return[$name])) {
+                }
+                else
+                {
+                    if (is_array($return[$name]))
+                    {
                         $return[$name][] = $value;
-                    } else {
-                        $return[$name] = array($return[$name], $value);
+                    }
+                    else
+                    {
+                        $return[$name] = [$return[$name], $value];
                     }
                 }
             }
         }
-
         return $return;
     }
 
@@ -726,16 +752,15 @@ abstract class Protocol
      */
     protected function getRequestHeaders($response)
     {
-        $eol = stripos($response, "\r\n");
-
-        if ($eol === false) {
+        if (($eol = stripos($response, "\r\n")) === false)
+        {
             throw new InvalidArgumentException('Invalid request line');
         }
 
-        $request = substr($response, 0, $eol);
-        $headers = $this->getHeaders(substr($response, $eol + 2));
-
-        return array($request, $headers);
+        return [
+            substr($response, 0, $eol),
+            $this->getHeaders(substr($response, $eol + 2))
+        ];
     }
 
     /**
@@ -747,16 +772,19 @@ abstract class Protocol
      */
     protected function validateScheme($scheme)
     {
-        if (!$scheme) {
+        if (!$scheme)
+        {
             throw new InvalidArgumentException('No scheme specified');
         }
-        if (!in_array($scheme, self::$schemes)) {
+        if (!in_array($scheme, self::$schemes))
+        {
             throw new InvalidArgumentException(
                 'Unknown socket scheme: ' . $scheme
             );
         }
 
-        if ($scheme == self::SCHEME_WEBSOCKET_SECURE) {
+        if ($scheme == self::SCHEME_WEBSOCKET_SECURE)
+        {
             return self::SCHEME_UNDERLYING_SECURE;
         }
         return self::SCHEME_UNDERLYING;
@@ -772,14 +800,14 @@ abstract class Protocol
      */
     protected function getDefaultRequestHeaders($host, $key, $origin)
     {
-        return array(
+        return [
             self::HEADER_HOST       => $host,
             self::HEADER_UPGRADE    => self::UPGRADE_VALUE,
             self::HEADER_CONNECTION => self::CONNECTION_VALUE,
             self::HEADER_KEY        => $key,
             self::HEADER_ORIGIN     => $origin,
             self::HEADER_VERSION    => $this->getVersion()
-        );
+        ];
     }
 
     /**
@@ -790,11 +818,11 @@ abstract class Protocol
      */
     protected function getSuccessResponseHeaders($key)
     {
-        return array(
+        return [
             self::HEADER_UPGRADE    => self::UPGRADE_VALUE,
             self::HEADER_CONNECTION => self::CONNECTION_VALUE,
             self::HEADER_ACCEPT     => $this->getAcceptValue($key)
-        );
+        ];
     }
 
     /**
@@ -804,20 +832,29 @@ abstract class Protocol
      *  connections and port 443 for WebSocket connections tunneled over
      *  Transport Layer Security
      *
-     * @param string $uri
+     * @param string $scheme
      * @return int
      */
     protected function getPort($scheme)
     {
-        if ($scheme == self::SCHEME_WEBSOCKET) {
+        if ($scheme == self::SCHEME_WEBSOCKET)
+        {
             return 80;
-        } elseif ($scheme == self::SCHEME_WEBSOCKET_SECURE) {
+        }
+        elseif ($scheme == self::SCHEME_WEBSOCKET_SECURE)
+        {
             return 443;
-        } elseif ($scheme == self::SCHEME_UNDERLYING) {
+        }
+        elseif ($scheme == self::SCHEME_UNDERLYING)
+        {
             return 80;
-        } elseif ($scheme == self::SCHEME_UNDERLYING_SECURE) {
+        }
+        elseif ($scheme == self::SCHEME_UNDERLYING_SECURE)
+        {
             return 443;
-        } else {
+        }
+        else
+        {
             throw new InvalidArgumentException('Unknown websocket scheme');
         }
     }
