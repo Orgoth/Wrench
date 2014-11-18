@@ -55,25 +55,33 @@ class StatusApplication extends Application
     public function clientConnected($ip, $port)
     {
         $this->statusMsg('Client connected: ' . $ip . ':' . $port);
+        
+        $serverMemory = Server::getInstance()->getMemoryManager();
 
         $this->_sendAll($this->_encodeData('clientConnected', [
-            'ip'          => $ip,
-            'port'        => $port,
-            'clientCount' => count(Server::getInstance()
-                             ->getConnectionManager()
-                             ->getConvertedConnections()),
+            'ip'            => $ip,
+            'port'          => $port,
+            'clientCount'   => count(Server::getInstance()
+                               ->getConnectionManager()
+                               ->getConvertedConnections()),
+            'currentMemory' => $serverMemory->getCurrentMemory(),
+            'maxMemory'     => $serverMemory->getMaxMemory()
         ]));
     }
 
     public function clientDisconnected($ip, $port)
     {
         $this->statusMsg('Client disconnected: ' . $ip . ':' . $port);
+        
+        $serverMemory = Server::getInstance()->getMemoryManager();
 
         $this->_sendAll($this->_encodeData('clientDisconnected', [
             'port'          => $port,
             'clientCount'   => count(Server::getInstance()
                                ->getConnectionManager()
-                               ->getConvertedConnections())
+                               ->getConvertedConnections()),
+            'currentMemory' => $serverMemory->getCurrentMemory(),
+            'maxMemory'     => $serverMemory->getMaxMemory()
         ]));
     }
 

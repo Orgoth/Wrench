@@ -49,11 +49,15 @@
     };
     var clientConnected = function(data) {
         addClientToList(data);
+        $('#currentMemory').text(data.currentMemory);
+        $('#maxMemory').text(data.maxMemory);
         return $('#clientCount').text(data.clientCount);
     };
     
     var clientDisconnected = function(data) {
       removeClientFromList(data.port);
+      $('#currentMemory').text(data.currentMemory);
+      $('#maxMemory').text(data.maxMemory);
       return $('#clientCount').text(data.clientCount);
     };
     

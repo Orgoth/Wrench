@@ -236,6 +236,7 @@ class Server extends Configurable
              * this behaviour with the timeout options.
              */
             $this->connectionManager->selectAndProcess();
+            $this->memoryManager->refreshMemory();
         }
     }
 
