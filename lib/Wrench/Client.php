@@ -47,7 +47,7 @@ class Client extends Configurable
      *
      * @var array
      */
-    protected $headers = array();
+    protected $headers = [];
 
     /**
      * Whether the client is connected
@@ -66,7 +66,7 @@ class Client extends Configurable
      *
      * @var array<Payload>
      */
-    protected $received = array();
+    protected $received = [];
 
     /**
      * Constructor
@@ -82,14 +82,14 @@ class Client extends Configurable
     {
         parent::__construct($options);
 
-        $uri = (string)$uri;
-        if (!$uri) {
+        if (!$uri)
+        {
             throw new InvalidArgumentException('No URI specified');
         }
         $this->uri = $uri;
 
-        $origin = (string)$origin;
-        if (!$origin) {
+        if (!$origin)
+        {
             throw new InvalidArgumentException('No origin specified');
         }
         $this->origin = $origin;
@@ -121,8 +121,7 @@ class Client extends Configurable
      */
     protected function configureSocket()
     {
-        $class = $this->options['socket_class'];
-        $this->socket = new $class($this->uri);
+        $this->socket = new $this->options['socket_class']($this->uri);
     }
 
     /**
@@ -130,7 +129,7 @@ class Client extends Configurable
      */
     protected function configurePayloadHandler()
     {
-        $this->payloadHandler = new PayloadHandler(array($this, 'onData'), $this->options);
+        $this->payloadHandler = new PayloadHandler([$this, 'onData'], $this->options);
     }
 
     /**
@@ -144,7 +143,8 @@ class Client extends Configurable
     public function onData(Payload $payload)
     {
         $this->received[] = $payload;
-        if (($callback = $this->options['on_data_callback'])) {
+        if (($callback = $this->options['on_data_callback']))
+        {
             call_user_func($callback, $payload);
         }
     }
@@ -173,17 +173,14 @@ class Client extends Configurable
      */
     public function sendData($data, $type = Protocol::TYPE_TEXT, $masked = true)
     {
-        if (is_string($type) && isset(Protocol::$frameTypes[$type])) {
+        if (is_string($type) && isset(Protocol::$frameTypes[$type]))
+        {
             $type = Protocol::$frameTypes[$type];
         }
 
         $payload = $this->protocol->getPayload();
 
-        $payload->encode(
-            $data,
-            $type,
-            $masked
-        );
+        $payload->encode($data, $type, $masked);
 
         return $payload->sendToSocket($this->socket);
     }
@@ -195,13 +192,13 @@ class Client extends Configurable
      */
     public function receive()
     {
-        if (!$this->isConnected()) {
+        if (!$this->isConnected())
+        {
             return false;
         }
 
-        $data = $this->socket->receive();
-
-        if (!$data) {
+        if (($data = $this->socket->receive()) === false)
+        {
             return $data;
         }
 
@@ -217,7 +214,8 @@ class Client extends Configurable
      */
     public function connect()
     {
-        if ($this->isConnected()) {
+        if ($this->isConnected())
+        {
             return false;
         }
 
@@ -232,9 +230,10 @@ class Client extends Configurable
         );
 
         $this->socket->send($handshake);
-        $response = $this->socket->receive(self::MAX_HANDSHAKE_RESPONSE);
-        return ($this->connected =
-                    $this->protocol->validateResponseHandshake($response, $key));
+        return ($this->connected = $this->protocol->validateResponseHandshake(
+            $this->socket->receive(self::MAX_HANDSHAKE_RESPONSE),
+            $key
+        ));
     }
 
     /**
@@ -246,17 +245,17 @@ class Client extends Configurable
      */
     public function isConnected()
     {
-        if ($this->connected === false) {
+        if (!$this->connected)
+        {
             return false;
         }
 
         // Check if the socket is still connected
-        if ($this->socket->isConnected() === false) {
+        if (!$this->socket->isConnected())
+        {
             $this->disconnect();
-
             return false;
         }
-
         return true;
     }
 
@@ -265,7 +264,8 @@ class Client extends Configurable
      */
     public function disconnect()
     {
-        if ($this->socket) {
+        if ($this->socket)
+        {
             $this->socket->disconnect();
         }
         $this->connected = false;

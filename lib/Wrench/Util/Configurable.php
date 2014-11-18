@@ -29,9 +29,8 @@ abstract class Configurable
      *     - protocol             => Wrench\Protocol object, latest protocol
      *                                 version used if not specified
      */
-    public function __construct(
-        array $options = []
-    ) {
+    public function __construct(array $options = [])
+    {
         $this->configureOptions($options);
         $this->configureProtocol();
     }
@@ -55,10 +54,10 @@ abstract class Configurable
     {
         $this->protocol = new Rfc6455Protocol();
 
-        if (!$this->protocol || !($this->protocol instanceof Protocol)) {
+        if (!$this->protocol || !($this->protocol instanceof Protocol))
+        {
             throw new InvalidArgumentException('Invalid protocol option');
         }
-
     }
     
     /**

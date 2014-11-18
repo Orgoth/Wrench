@@ -8,32 +8,25 @@ use Wrench\Server;
 class RateLimiter extends Configurable implements Listener
 {
     /**
-     * The server being limited
-     *
-     * @var Server
-     */
-    protected $server;
-
-    /**
      * Connection counts per IP address
      *
      * @var array<int>
      */
-    protected $ips = array();
+    protected $ips = [];
 
     /**
      * Request tokens per IP address
      *
      * @var array<array<int>>
      */
-    protected $requests = array();
+    protected $requests = [];
 
     /**
      * Constructor
      *
      * @param array $options
      */
-    public function __construct(array $options = array())
+    public function __construct(array $options = [])
     {
         parent::__construct($options);
         $this->configure();
@@ -54,10 +47,10 @@ class RateLimiter extends Configurable implements Listener
     /**
      * @see Wrench\Listener.Listener::listen()
      */
-    public function listen(Server $server)
+    public function listen()
     {
-        $this->server = $server;
-
+        $server = Server::getInstance();
+        
         $server->addListener(
             Server::EVENT_SOCKET_CONNECT,
             array($this, 'onSocketConnect')
@@ -77,10 +70,9 @@ class RateLimiter extends Configurable implements Listener
     /**
      * Event listener
      *
-     * @param resource $socket
      * @param Connection $connection
      */
-    public function onSocketConnect($socket, $connection)
+    public function onSocketConnect($connection)
     {
         $this->checkConnections($connection);
         $this->checkConnectionsPerIp($connection);
@@ -89,10 +81,9 @@ class RateLimiter extends Configurable implements Listener
     /**
      * Event listener
      *
-     * @param resource $socket
      * @param Connection $connection
      */
-    public function onSocketDisconnect($socket, $connection)
+    public function onSocketDisconnect($connection)
     {
         $this->releaseConnection($connection);
     }
@@ -100,10 +91,9 @@ class RateLimiter extends Configurable implements Listener
     /**
      * Event listener
      *
-     * @param resource $socket
      * @param Connection $connection
      */
-    public function onClientData($socket, $connection)
+    public function onClientData($connection)
     {
         $this->checkRequestsPerMinute($connection);
     }
@@ -115,9 +105,7 @@ class RateLimiter extends Configurable implements Listener
      */
     protected function checkConnections($connection)
     {
-        $connections = $connection->getConnectionManager()->count();
-
-        if ($connections > $this->options['connections']) {
+        if (Server::getInstance()->getConnectionManager()->count() > $this->options['connections']) {
             $this->limit($connection, 'Max connections');
         }
     }
@@ -129,23 +117,20 @@ class RateLimiter extends Configurable implements Listener
      */
     protected function checkConnectionsPerIp($connection)
     {
-        $ip = $connection->getIp();
-
-        if (!$ip) {
+        if (!($ip = $connection->getIp()) === false)
+        {
             $this->log('Cannot check connections per IP', 'warning');
             return;
         }
 
-        if (!isset($this->ips[$ip])) {
-            $this->ips[$ip] = 1;
-        } else {
-            $this->ips[$ip] = min(
-                $this->options['connections_per_ip'],
-                $this->ips[$ip] + 1
-            );
-        }
+        $this->ips[$ip] =
+            (!isset($this->ips[$ip]))
+            ? 1
+            : min($this->options['connections_per_ip'], $this->ips[$ip] + 1)
+        ;
 
-        if ($this->ips[$ip] > $this->options['connections_per_ip']) {
+        if ($this->ips[$ip] > $this->options['connections_per_ip'])
+        {
             $this->limit($connection, 'Connections per IP');
         }
     }
@@ -157,19 +142,17 @@ class RateLimiter extends Configurable implements Listener
      */
     protected function releaseConnection($connection)
     {
-        $ip = $connection->getIp();
-
-        if (!$ip) {
+        if (!($ip = $connection->getIp()) === false)
+        {
             $this->log('Cannot release connection', 'warning');
             return;
         }
 
-        if (!isset($this->ips[$ip])) {
-            $this->ips[$ip] = 0;
-        } else {
-            $this->ips[$ip] = max(0, $this->ips[$ip] - 1);
-        }
-
+        $this->ips[$ip] = 
+            (!isset($this->ips[$ip]))
+            ? 0 
+            : max(0, $this->ips[$ip] - 1)
+        ;
         unset($this->requests[$connection->getId()]);
     }
 
@@ -183,18 +166,20 @@ class RateLimiter extends Configurable implements Listener
         $id = $connection->getId();
 
         if (!isset($this->requests[$id])) {
-            $this->requests[$id] = array();
+            $this->requests[$id] = [];
         }
 
         // Add current token
         $this->requests[$id][] = time();
 
         // Expire old tokens
-        while (reset($this->requests[$id]) < time() - 60) {
+        while (reset($this->requests[$id]) < time() - 60)
+        {
             array_shift($this->requests[$id]);
         }
 
-        if (count($this->requests[$id]) > $this->options['requests_per_minute']) {
+        if (count($this->requests[$id]) > $this->options['requests_per_minute'])
+        {
             $this->limit($connection, 'Requests per minute');
         }
     }
@@ -207,12 +192,7 @@ class RateLimiter extends Configurable implements Listener
      */
     protected function limit($connection, $limit)
     {
-        $this->log(sprintf(
-            'Limiting connection %s: %s',
-            $connection->getIp(),
-            $limit
-        ), 'notice');
-
+        $this->log("Limiting connection {$connection->getIp()}: $limit", 'notice');
         $connection->close(new RateLimiterException($limit));
     }
 
@@ -224,6 +204,6 @@ class RateLimiter extends Configurable implements Listener
      */
     public function log($message, $priority = 'info')
     {
-        $this->server->log('RateLimiter: ' . $message, $priority);
+        Server::getInstance()->log('RateLimiter: ' . $message, $priority);
     }
 }

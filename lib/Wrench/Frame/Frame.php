@@ -97,13 +97,17 @@ abstract class Frame
      */
     public function isComplete()
     {
-        if (!$this->buffer) {
+        if (!$this->buffer)
+        {
             return false;
         }
 
-        try {
+        try
+        {
             return $this->getBufferLength() >= $this->getExpectedBufferLength();
-        } catch (FrameException $e) {
+        }
+        catch (FrameException $e)
+        {
             return false;
         }
     }
@@ -125,9 +129,12 @@ abstract class Frame
      */
     public function getRemainingData()
     {
-        try {
+        try
+        {
             return $this->getExpectedBufferLength() - $this->getBufferLength();
-        } catch (FrameException $e) {
+        }
+        catch (FrameException $e)
+        {
             return null;
         }
     }
@@ -151,14 +158,15 @@ abstract class Frame
      */
     public function getFramePayload()
     {
-        if (!$this->isComplete()) {
+        if (!$this->isComplete())
+        {
             throw new FrameException('Cannot get payload: frame is not complete');
         }
 
-        if (!$this->payload && $this->buffer) {
+        if (!$this->payload && $this->buffer)
+        {
             $this->decodeFramePayloadFromBuffer();
         }
-
         return $this->payload;
     }
 
@@ -172,7 +180,8 @@ abstract class Frame
      */
     public function getFrameBuffer()
     {
-        if (!$this->buffer && $this->payload) {
+        if (!$this->buffer && $this->payload)
+        {
             throw new FrameException('Cannot get frame buffer');
         }
         return $this->buffer;

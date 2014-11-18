@@ -100,10 +100,8 @@ class Connection extends Configurable
      * @param ServerClientSocket $socket
      * @param array              $options
      */
-    public function __construct(
-        ServerClientSocket $socket,
-        array $options = []
-    ) {
+    public function __construct(ServerClientSocket $socket, array $options = [])
+    {
         $this->socket = $socket;
 
         parent::__construct($options);
@@ -112,7 +110,7 @@ class Connection extends Configurable
         $this->configureClientInformation();
         $this->configurePayloadHandler();
 
-        $this->log('Connected');
+        Server::getInstance()->log('Connected');
     }
 
     /**
@@ -129,7 +127,7 @@ class Connection extends Configurable
     protected function configurePayloadHandler()
     {
         $this->payloadHandler = new PayloadHandler(
-            array($this, 'handlePayload'),
+            [$this, 'handlePayload'],
             $this->options
         );
     }
@@ -154,13 +152,12 @@ class Connection extends Configurable
      */
     protected function configureClientId()
     {
-        $message = sprintf(
-            '%s:uri=%s&ip=%s&port=%s',
-            $this->options['connection_id_secret'],
-            rawurlencode(Server::getInstance()->getConnectionManager()->getUri()),
-            rawurlencode($this->ip),
+        $message = 
+            $this->options['connection_id_secret'] . ':uri=' .
+            rawurlencode(Server::getInstance()->getConnectionManager()->getUri()) . '&ip=' .
+            rawurlencode($this->ip) . '&port=' .
             rawurlencode($this->port)
-        );
+        ;
 
         $this->id =
             (extension_loaded('gmp'))
@@ -178,7 +175,8 @@ class Connection extends Configurable
      */
     public function onData($data)
     {
-        if (!$this->handshaked) {
+        if (!$this->handshaked)
+        {
             return $this->handshake($data);
         }
         return $this->handle($data);
@@ -215,33 +213,33 @@ class Connection extends Configurable
 
             $response = $this->protocol->getResponseHandshake($key);
 
-            if (!$this->socket->isConnected()) {
+            if (!$this->socket->isConnected())
+            {
                 throw new HandshakeException('Socket is not connected');
             }
 
-            if ($this->socket->send($response) === false) {
+            if ($this->socket->send($response) === false)
+            {
                 throw new HandshakeException('Could not send handshake response');
             }
 
             $this->handshaked = true;
 
-            $this->log(sprintf(
-                'Handshake successful: %s:%d connected to %s',
-                $this->getIp(),
-                $this->getPort(),
-                $path
-            ), 'info');
+            $server->log("Handshake successful: {$this->getIp()}:{$this->getPort()} connected to {$path}", 'info');
 
             $server->notify(
                 Server::EVENT_HANDSHAKE_SUCCESSFUL,
-                array($this)
+                [$this]
             );
 
-            if (method_exists($this->application, 'onConnect')) {
+            if (method_exists($this->application, 'onConnect'))
+            {
                 $this->application->onConnect($this);
             }
-        } catch (WrenchException $e) {
-            $this->log('Handshake failed: ' . $e, 'err');
+        }
+        catch (WrenchException $e)
+        {
+            Server::getInstance()->log("Handshake failed: $e", 'err');
             $this->close($e);
         }
     }
@@ -255,7 +253,8 @@ class Connection extends Configurable
     protected function export($data)
     {
         $export = '';
-        foreach (str_split($data) as $chr) {
+        foreach (str_split($data) as $chr)
+        {
             $export .= '\\x' . ord($chr);
         }
     }
@@ -287,29 +286,35 @@ class Connection extends Configurable
     public function handlePayload(Payload $payload)
     {
         $app = $this->getClientApplication();
+        $server = Server::getInstance();
+        
+        $server->log("Handling payload: {$payload->getPayload()}", 'debug');
 
-        $this->log('Handling payload: ' . $payload->getPayload(), 'debug');
-
-        switch ($type = $payload->getType()) {
+        switch ($type = $payload->getType())
+        {
             case Protocol::TYPE_TEXT:
-                if (method_exists($app, 'onData')) {
+                if (method_exists($app, 'onData'))
+                {
                     $app->onData($payload, $this);
                 }
                 return;
 
             case Protocol::TYPE_BINARY:
-                if(method_exists($app, 'onBinaryData')) {
+                if(method_exists($app, 'onBinaryData'))
+                {
                     $app->onBinaryData($payload, $this);
-                } else {
+                }
+                else
+                {
                     $this->close(1003);
                 }
-            break;
+                break;
 
             case Protocol::TYPE_PING:
-                $this->log('Ping received', 'notice');
+                $server->log('Ping received', 'notice');
                 $this->send($payload->getPayload(), Protocol::TYPE_PONG);
-                $this->log('Pong!', 'debug');
-            break;
+                $server->log('Pong!', 'debug');
+                break;
 
             /**
              * A Pong frame MAY be sent unsolicited.  This serves as a
@@ -317,14 +322,14 @@ class Connection extends Configurable
              * frame is not expected.
              */
             case Protocol::TYPE_PONG:
-                $this->log('Received unsolicited pong', 'info');
-            break;
+                $server->log('Received unsolicited pong', 'info');
+                break;
 
             case Protocol::TYPE_CLOSE:
-                $this->log('Close frame received', 'notice');
+                $server->log('Close frame received', 'notice');
                 $this->close();
-                $this->log('Disconnected', 'info');
-            break;
+                $server->log('Disconnected', 'info');
+                break;
 
             default:
                 throw new ConnectionException('Unhandled payload type');
@@ -342,7 +347,8 @@ class Connection extends Configurable
      */
     public function send($data, $type = Protocol::TYPE_TEXT)
     {
-        if (!$this->handshaked) {
+        if (!$this->handshaked)
+        {
             throw new HandshakeException('Connection is not handshaked');
         }
 
@@ -351,7 +357,8 @@ class Connection extends Configurable
         // Servers don't send masked payloads
         $payload->encode($data, $type, false);
 
-        if (!$payload->sendToSocket($this->socket)) {
+        if (!$payload->sendToSocket($this->socket))
+        {
             $this->log('Could not send payload to client', 'warn');
             throw new ConnectionException('Could not send data to connection: ' . $this->socket->getLastError());
         }
@@ -367,9 +374,9 @@ class Connection extends Configurable
     public function process()
     {
         $data = $this->socket->receive();
-        $bytes = strlen($data);
 
-        if ($bytes === 0 || $data === false) {
+        if (strlen($data) === 0 || $data === false)
+        {
             throw new CloseException('Error reading data from socket: ' . $this->socket->getLastError());
         }
 
@@ -413,7 +420,7 @@ class Connection extends Configurable
         }
         catch (Exception $e)
         {
-            $this->log('Unable to send close message', 'warning');
+            Server::getInstance()->log('Unable to send close message', 'warning');
         }
 
         if ($this->application && method_exists($this->application, 'onDisconnect'))
@@ -423,23 +430,6 @@ class Connection extends Configurable
 
         $this->socket->disconnect();
         Server::getInstance()->getConnectionManager()->removeConnection($this);
-    }
-
-    /**
-     * Logs a message
-     *
-     * @param string $message
-     * @param string $priority
-     */
-    public function log($message, $priority = 'info')
-    {
-        Server::getInstance()->getConnectionManager()->log(sprintf(
-            '%s: %s:%d: %s',
-            __CLASS__,
-            $this->getIp(),
-            $this->getPort(),
-            $message
-        ), $priority);
     }
 
     /**

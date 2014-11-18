@@ -21,7 +21,7 @@ abstract class Payload
      *
      * @var array<Frame>
      */
-    protected $frames = array();
+    protected $frames = [];
 
     /**
      * Gets the current frame for the payload
@@ -30,7 +30,8 @@ abstract class Payload
      */
     protected function getCurrentFrame()
     {
-        if (empty($this->frames)) {
+        if (empty($this->frames))
+        {
             array_push($this->frames, $this->getFrame());
         }
         return end($this->frames);
@@ -46,14 +47,17 @@ abstract class Payload
     {
         $current = $this->getCurrentFrame();
 
-        if ($current->isComplete()) {
-            if ($current->isFinal()) {
+        if ($current->isComplete())
+        {
+            if ($current->isFinal())
+            {
                 throw new PayloadException('Payload cannot receieve data: it is already complete');
-            } else {
+            }
+            else
+            {
                 $current = array_push($this->frames, $this->getFrame());
             }
         }
-
         return $current;
     }
 
@@ -85,7 +89,7 @@ abstract class Payload
      */
     public function encode($data, $type = Protocol::TYPE_TEXT, $masked = false)
     {
-        $this->frames = array();
+        $this->frames = [];
 
         $frame = $this->getFrame();
         array_push($this->frames, $frame);
@@ -106,18 +110,22 @@ abstract class Payload
      */
     public function getRemainingData()
     {
-        if ($this->isComplete()) {
+        if ($this->isComplete())
+        {
             return 0;
         }
 
-        try {
-            if ($this->getCurrentFrame()->isFinal()) {
+        try
+        {
+            if ($this->getCurrentFrame()->isFinal())
+            {
                 return $this->getCurrentFrame()->getRemainingData();
             }
-        } catch (FrameException $e) {
+        }
+        catch (FrameException $e)
+        {
             return null;
         }
-
         return null;
     }
 
@@ -138,7 +146,8 @@ abstract class Payload
     public function sendToSocket(Socket $socket)
     {
         $success = true;
-        foreach ($this->frames as $frame) {
+        foreach ($this->frames as $frame)
+        {
             $success = $success && ($socket->send($frame->getFrameBuffer()) !== false);
         }
         return $success;
@@ -152,15 +161,18 @@ abstract class Payload
      */
     public function receiveData($data)
     {
-        while ($data) {
+        while ($data)
+        {
             $frame = $this->getReceivingFrame();
 
-            $size = strlen($data);
             $remaining = $frame->getRemainingData();
 
-            if ($remaining === null) {
+            if ($remaining === null)
+            {
                 $chunk_size = 2;
-            } elseif ($remaining > 0) {
+            }
+            elseif ($remaining > 0)
+            {
                 $chunk_size = $remaining;
             }
 
@@ -177,13 +189,13 @@ abstract class Payload
      */
     public function getPayload()
     {
-        $this->buffer = '';
+        $buffer = '';
 
-        foreach ($this->frames as $frame) {
-            $this->buffer .= $frame->getFramePayload();
+        foreach ($this->frames as $frame)
+        {
+            $buffer .= $frame->getFramePayload();
         }
-
-        return $this->buffer;
+        return $buffer;
     }
 
     /**
@@ -191,9 +203,12 @@ abstract class Payload
      */
     public function __toString()
     {
-        try {
+        try
+        {
             return $this->getPayload();
-        } catch (\Exception $e) {
+        }
+        catch (\Exception $e)
+        {
             // __toString must not throw an exception
             return '';
         }
@@ -209,7 +224,8 @@ abstract class Payload
      */
     public function getType()
     {
-        if (!isset($this->frames[0])) {
+        if (!isset($this->frames[0]))
+        {
             throw new PayloadException('Cannot tell payload type yet');
         }
         return $this->frames[0]->getType();

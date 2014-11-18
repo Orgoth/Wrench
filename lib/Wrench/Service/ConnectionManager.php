@@ -230,9 +230,7 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function processClientSocket($socket)
     {
-        $connection = $this->getConnectionForClientSocket($socket);
-
-        if (!$connection)
+        if (($connection = $this->getConnectionForClientSocket($socket)) === false)
         {
             $this->log('No connection for client socket', 'warning');
             return;
@@ -294,11 +292,7 @@ class ConnectionManager extends Configurable implements Countable
      */
     public function log($message, $priority = 'info')
     {
-        Server::getInstance()->log(sprintf(
-            '%s: %s',
-            __CLASS__,
-            $message
-        ), $priority);
+        Server::getInstance()->log(__CLASS__ . ": $message", $priority);
     }
 
     /**
@@ -316,15 +310,22 @@ class ConnectionManager extends Configurable implements Countable
             : array_search($connection, $this->connections)
         ;
 
-        if (!$index) {
+        if (!$index)
+        {
             $this->log('Could not remove connection: not found', 'warning');
         }
 
         unset($this->connections[$index]);
         unset($this->resources[$index]);
 
-        Server::getInstance()->notify(Server::EVENT_SOCKET_DISCONNECT,array($connection->getSocket(), $connection));
-        Server::getInstance()->notifyApplications(Server::EVENT_SOCKET_DISCONNECT, array($connection->getSocket(), $connection));
+        Server::getInstance()->notify(
+            Server::EVENT_SOCKET_DISCONNECT,
+            [$connection->getSocket(), $connection]
+        );
+        Server::getInstance()->notifyApplications(
+            Server::EVENT_SOCKET_DISCONNECT,
+            [$connection->getSocket(), $connection]
+        );
     }
     
     /**

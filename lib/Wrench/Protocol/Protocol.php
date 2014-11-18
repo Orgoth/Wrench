@@ -168,19 +168,19 @@ abstract class Protocol
      *
      * @var array<string>
      */
-    protected static $schemes = array(
+    protected static $schemes = [
         self::SCHEME_WEBSOCKET,
         self::SCHEME_WEBSOCKET_SECURE,
         self::SCHEME_UNDERLYING,
         self::SCHEME_UNDERLYING_SECURE
-    );
+    ];
 
     /**
      * Close status codes
      *
      * @var array<int => string>
      */
-    public static $closeReasons = array(
+    public static $closeReasons = [
         self::CLOSE_NORMAL            => 'normal close',
         self::CLOSE_GOING_AWAY        => 'going away',
         self::CLOSE_PROTOCOL_ERROR    => 'protocol error',
@@ -194,7 +194,7 @@ abstract class Protocol
         self::CLOSE_RESERVED_NONE     => null,
         self::CLOSE_RESERVED_ABNORM   => null,
         self::CLOSE_RESERVED_TLS      => null
-    );
+    ];
 
     /**
      * Frame types
@@ -202,21 +202,21 @@ abstract class Protocol
      * @todo flip values and keys?
      * @var array<string => int>
      */
-    public static $frameTypes = array(
+    public static $frameTypes = [
         'continuation' => self::TYPE_CONTINUATION,
         'text'         => self::TYPE_TEXT,
         'binary'       => self::TYPE_BINARY,
         'close'        => self::TYPE_CLOSE,
         'ping'         => self::TYPE_PING,
         'pong'         => self::TYPE_PONG
-    );
+    ];
 
     /**
      * HTTP errors
      *
      * @var array<int => string>
      */
-    public static $httpResponses = array(
+    public static $httpResponses = [
         self::HTTP_SWITCHING_PROTOCOLS => 'Switching Protocols',
         self::HTTP_BAD_REQUEST         => 'Bad Request',
         self::HTTP_UNAUTHORIZED        => 'Unauthorized',
@@ -224,7 +224,7 @@ abstract class Protocol
         self::HTTP_NOT_FOUND           => 'Not Found',
         self::HTTP_NOT_IMPLEMENTED     => 'Not Implemented',
         self::HTTP_RATE_LIMITED        => 'Enhance Your Calm'
-    );
+    ];
 
     /**
      * Gets a version number
@@ -284,7 +284,7 @@ abstract class Protocol
      * @param string $origin Origin of the request
      * @return string
      */
-    public function getRequestHandshake($uri, $key, $origin, array $headers = array())
+    public function getRequestHandshake($uri, $key, $origin, array $headers = [])
     {
         if (!$uri || !$key || !$origin)
         {
@@ -300,12 +300,9 @@ abstract class Protocol
 
         $handshake = [sprintf(self::REQUEST_LINE_FORMAT, $path)];
 
-        $headers = array_merge(
-            $this->getDefaultRequestHeaders(
-                $host . ':' . $port, $key, $origin
-            ),
-            $headers
-        );
+        $headers = array_merge($this->getDefaultRequestHeaders(
+            $host . ':' . $port, $key, $origin
+        ), $headers);
 
         foreach ($headers as $name => $value)
         {
@@ -320,15 +317,12 @@ abstract class Protocol
      * @param string $key
      * @param array $headers
      */
-    public function getResponseHandshake($key, array $headers = array())
+    public function getResponseHandshake($key, array $headers = [])
     {
-        $headers = array_merge(
-            $this->getSuccessResponseHeaders(
-                $key
-            ),
-            $headers
+        return $this->getHttpResponse(
+            self::HTTP_SWITCHING_PROTOCOLS,
+            array_merge($this->getSuccessResponseHeaders($key), $headers)
         );
-        return $this->getHttpResponse(self::HTTP_SWITCHING_PROTOCOLS, $headers);
     }
 
     /**
@@ -337,7 +331,7 @@ abstract class Protocol
      * @param int|Exception $e Exception or HTTP error
      * @param array $headers
      */
-    public function getResponseError($e, array $headers = array())
+    public function getResponseError($e, array $headers = [])
     {
         $code = false;
 
@@ -360,7 +354,7 @@ abstract class Protocol
      * @param int $status
      * @param array $headers
      */
-    protected function getHttpResponse($status, array $headers = array())
+    protected function getHttpResponse($status, array $headers = [])
     {
         $response =
             (array_key_exists($status, self::$httpResponses))
@@ -399,19 +393,14 @@ abstract class Protocol
             throw new HandshakeException('No accept header receieved on handshake response');
         }
 
-        $accept = $headers[self::HEADER_ACCEPT];
-
-        if (!$accept)
+        if (($accept = $headers[self::HEADER_ACCEPT]) === false)
         {
             throw new HandshakeException('Invalid accept header');
         }
 
-        $expected = $this->getAcceptValue($key);
-
         preg_match('#Sec-WebSocket-Accept:\s(.*)$#mU', $response, $matches);
-        $keyAccept = trim($matches[1]);
 
-        return ($keyAccept === $this->getEncodedHash($key)) ? true : false;
+        return (trim($matches[1]) === $this->getEncodedHash($key));
     }
 
     /**
@@ -445,7 +434,7 @@ abstract class Protocol
         // parse the resulting url to separate query parameters from the path
         $url = parse_url($this->validateRequestLine($request));
         $path = isset($url['path']) ? $url['path'] : null;
-        $urlParams = array();
+        $urlParams = [];
         if (isset($url['query']))
         {
             parse_str($url['query'], $urlParams);
@@ -584,8 +573,7 @@ abstract class Protocol
         $scheme = parse_url($uri, PHP_URL_SCHEME);
         $this->validateScheme($scheme);
 
-        $host = parse_url($uri, PHP_URL_HOST);
-        if (!$host)
+        if (($host = parse_url($uri, PHP_URL_HOST)) === false)
         {
             throw new InvalidArgumentException("Invalid host");
         }
@@ -617,9 +605,7 @@ abstract class Protocol
             throw new InvalidArgumentException('Invalid URI');
         }
 
-        $scheme = $this->validateScheme(
-            parse_url($uri, PHP_URL_SCHEME)
-        );
+        $scheme = $this->validateScheme(parse_url($uri, PHP_URL_SCHEME));
 
         if (($host = parse_url($uri, PHP_URL_HOST)) === false)
         {
@@ -715,7 +701,7 @@ abstract class Protocol
 
         list($headers, $body) = $parts;
 
-        $return = array();
+        $return = [];
         foreach (explode("\r\n", $headers) as $header)
         {
             $parts = explode(': ', $header, 2);
@@ -853,9 +839,6 @@ abstract class Protocol
         {
             return 443;
         }
-        else
-        {
-            throw new InvalidArgumentException('Unknown websocket scheme');
-        }
+        throw new InvalidArgumentException('Unknown websocket scheme');
     }
 }
