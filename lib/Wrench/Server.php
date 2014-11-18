@@ -11,6 +11,7 @@ use \Closure;
 use \InvalidArgumentException;
 
 use Wrench\Service\MemoryManager;
+use Wrench\Service\Logger;
 
 /**
  * WebSocket server
@@ -151,13 +152,7 @@ class Server extends Configurable
      */
     protected function configureLogger()
     {
-        // Default logger
-        if (!isset($this->options['logger'])) {
-            $this->options['logger'] = function ($message, $priority = 'info') {
-                printf("%s: %s%s", $priority, $message, PHP_EOL);
-            };
-        }
-        $this->setLogger($this->options['logger']);
+        $this->logger = new Logger();
     }
 
     /**
@@ -206,20 +201,6 @@ class Server extends Configurable
     }
 
     /**
-     * Sets a logger
-     *
-     * @param Closure $logger
-     * @return void
-     */
-    public function setLogger($logger)
-    {
-        if (!is_callable($logger)) {
-            throw new \InvalidArgumentException('Logger must be callable');
-        }
-        $this->logger = $logger;
-    }
-
-    /**
      * Main server loop
      *
      * @return void This method does not return!
@@ -251,9 +232,9 @@ class Server extends Configurable
      * @param string $type Type of message.
      * @return void
      */
-    public function log($message, $priority = 'info')
+    public function log($message, $type = 'info')
     {
-        call_user_func($this->logger, date('[G:i:s] ').$message, $priority);
+        $this->logger->log($type, $message);
     }
 
     /**

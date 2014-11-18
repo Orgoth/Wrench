@@ -11,6 +11,7 @@ use Wrench\Exception\CloseException;
 use \Exception;
 use \Countable;
 use Wrench\Server;
+use Wrench\Connection;
 
 class ConnectionManager extends Configurable implements Countable
 {
