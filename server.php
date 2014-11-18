@@ -11,7 +11,7 @@ use Wrench\Server;
 use Application\Demo\DemoApplication;
 use Application\Status\StatusApplication;
 
-$loader = require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
 
 $server = Server::getInstance();
 $server->init('ws://localhost:8000/', [
