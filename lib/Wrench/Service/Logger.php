@@ -25,6 +25,7 @@
             'error'     => 'red',
             'notice'    => 'yellow',
             'debug'     => 'yellow',
+            'warn'      => 'light_red'
         ];
         
         /**
