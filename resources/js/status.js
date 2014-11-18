@@ -83,7 +83,7 @@
       $('#clientCount').text('');
       $('#maxClients').text('');
       $('#maxConnections').text('');
-      $('#maxRequetsPerMinute').text('');
+      $('#maxRequestsPerMinute').text('');
       $('#currentMemory').text('');
       $('#maxMemory').text('');
     };
