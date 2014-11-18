@@ -1,6 +1,6 @@
 <?php
 
-namespace Wrench;
+namespace Wrench\Service;
 
 use InvalidArgumentException;
 use Wrench\Protocol\Protocol;

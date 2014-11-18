@@ -135,7 +135,7 @@ class Server extends Configurable
     protected function configure()
     {
         parent::configureOptions(array_merge([
-            'connection_manager_class'   => 'Wrench\ConnectionManager',
+            'connection_manager_class'   => 'Wrench\Service\ConnectionManager',
             'connection_manager_options' => []
         ], $this->options));
 
