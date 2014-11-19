@@ -29,7 +29,6 @@ class PayloadHandler
 
     /**
      * @param callable $callback
-     * @param array $options
      * @throws InvalidArgumentException
      */
     public function __construct($callback)
@@ -98,17 +97,7 @@ class PayloadHandler
             }
         }
     }
-
-    /**
-     * Get the current payload
-     *
-     * @return Payload
-     */
-    public function getCurrent()
-    {
-        return $this->getPayloadHandler->getCurrent();
-    }
-
+    
     /**
      * Emits a complete payload to the callback
      *

@@ -12,6 +12,7 @@ use Wrench\Socket\ClientSocket;
 use Wrench\Protocol\Protocol;
 use Wrench\Protocol\Rfc6455Protocol;
 
+
 use \InvalidArgumentException;
 use \RuntimeException;
 
@@ -20,7 +21,7 @@ use \RuntimeException;
  *
  * Represents a websocket client
  */
-class Client extends Configurable
+class Client
 {
     /**
      * @var int bytes
@@ -74,14 +75,9 @@ class Client extends Configurable
      * @param string $uri
      * @param string $origin  The origin to include in the handshake (required
      *                          in later versions of the protocol)
-     * @param array  $options (optional) Array of options
-     *                         - socket   => Socket instance (otherwise created)
-     *                         - protocol => Protocol
      */
-    public function __construct($uri, $origin, array $options = array())
+    public function __construct($uri, $origin)
     {
-        parent::__construct($options);
-
         if (!$uri)
         {
             throw new InvalidArgumentException('No URI specified');
@@ -94,26 +90,12 @@ class Client extends Configurable
         }
         $this->origin = $origin;
 
-        $this->protocol->validateUri($this->uri);
-        $this->protocol->validateOriginUri($this->origin);
+        $protocol = Server::getInstance()->getProtocol();
+        $protocol->validateUri($this->uri);
+        $protocol->validateOriginUri($this->origin);
 
-        $this->configure();
         $this->configureSocket();
         $this->configurePayloadHandler();
-    }
-
-    /**
-     * Configure options
-     *
-     * @param array $options
-     * @return void
-     */
-    protected function configure()
-    {
-        parent::configureOptions(array_merge([
-            'socket_class'     => 'Wrench\\Socket\\ClientSocket',
-            'on_data_callback' => null
-        ], $this->options));
     }
 
     /**
@@ -121,7 +103,7 @@ class Client extends Configurable
      */
     protected function configureSocket()
     {
-        $this->socket = new $this->options['socket_class']($this->uri);
+        $this->socket = new ClientSocket($this->uri);
     }
 
     /**
@@ -129,7 +111,7 @@ class Client extends Configurable
      */
     protected function configurePayloadHandler()
     {
-        $this->payloadHandler = new PayloadHandler([$this, 'onData'], $this->options);
+        $this->payloadHandler = new PayloadHandler('Wrench\Client::onData');
     }
 
     /**
@@ -142,11 +124,7 @@ class Client extends Configurable
      */
     public function onData(Payload $payload)
     {
-        $this->received[] = $payload;
-        if (($callback = $this->options['on_data_callback']))
-        {
-            call_user_func($callback, $payload);
-        }
+        
     }
 
     /**
@@ -178,7 +156,7 @@ class Client extends Configurable
             $type = Protocol::$frameTypes[$type];
         }
 
-        $payload = $this->protocol->getPayload();
+        $payload = Servver::getInstance()->getProtocol()->getPayload();
 
         $payload->encode($data, $type, $masked);
 
@@ -220,9 +198,11 @@ class Client extends Configurable
         }
 
         $this->socket->connect();
-
-        $key       = $this->protocol->generateKey();
-        $handshake = $this->protocol->getRequestHandshake(
+        $protocol = Server::getInstance()->getProtocol();
+        
+        
+        $key       = $protocol->generateKey();
+        $handshake = $protocol->getRequestHandshake(
             $this->uri,
             $key,
             $this->origin,
@@ -230,7 +210,7 @@ class Client extends Configurable
         );
 
         $this->socket->send($handshake);
-        return ($this->connected = $this->protocol->validateResponseHandshake(
+        return ($this->connected = $protocol->validateResponseHandshake(
             $this->socket->receive(self::MAX_HANDSHAKE_RESPONSE),
             $key
         ));

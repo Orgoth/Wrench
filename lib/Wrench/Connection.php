@@ -395,7 +395,7 @@ class Connection
      * sending and receiving a close message, e.g. if it has not received a
      * TCP close from the server in a reasonable time period.
      *
-     * @param int|Exception $statusCode
+     * @param int|Exception $code
      * @return boolean
      */
     public function close($code = Protocol::CLOSE_NORMAL)
