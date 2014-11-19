@@ -3,13 +3,14 @@
 namespace Wrench\Payload;
 
 use Wrench\Exception\PayloadException;
-use Wrench\Util\Configurable;
 use \InvalidArgumentException;
+
+use Wrench\Server;
 
 /**
  * Handles chunking and splitting of payloads into frames
  */
-class PayloadHandler extends Configurable
+class PayloadHandler
 {
     /**
      * A callback that will be called when a complete payload is available
@@ -22,16 +23,17 @@ class PayloadHandler extends Configurable
      * The current payload
      */
     protected $payload;
+    
+    /** @var Protocol */
+    protected $protocol;
 
     /**
      * @param callable $callback
      * @param array $options
      * @throws InvalidArgumentException
      */
-    public function __construct($callback, array $options = array())
+    public function __construct($callback)
     {
-        parent::__construct($options);
-
         if (!is_callable($callback))
         {
             throw new InvalidArgumentException('You must supply a callback to PayloadHandler');
@@ -48,7 +50,7 @@ class PayloadHandler extends Configurable
     {
         if (!$this->payload)
         {
-            $this->payload = $this->protocol->getPayload();
+            $this->payload = Server::getInstance()->getProtocol()->getPayload();
         }
         // Each iteration pulls off a single payload chunk
         while ($data)
@@ -88,7 +90,7 @@ class PayloadHandler extends Configurable
             if ($this->payload->isComplete())
             {
                 $this->emit($this->payload);
-                $this->payload = $this->protocol->getPayload();
+                $this->payload = Server::getInstance()->getProtocol()->getPayload();
             }
             else
             {

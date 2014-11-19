@@ -23,9 +23,9 @@ class ServerSocket extends UriSocket
      */
     protected $listening = false;
 
-    public function __construct($uri, array $options = [])
+    public function __construct($uri)
     {
-        parent::__construct($uri, $options);
+        parent::__construct($uri);
         
         $this->configure();
     }
@@ -43,13 +43,13 @@ class ServerSocket extends UriSocket
      */
     protected function configure()
     {
-        parent::configureOptions(array_merge([
+        $this->options = [
             'backlog'               => 50,
             'ssl_cert_file'         => null,
             'ssl_passphrase'        => null,
             'ssl_allow_self_signed' => false,
             'timeout_accept'        => self::TIMEOUT_ACCEPT
-        ], $this->options));
+        ];
     }
 
     /**
@@ -67,7 +67,8 @@ class ServerSocket extends UriSocket
             $this->getStreamContext()
         );
 
-        if (!$this->socket) {
+        if (!$this->socket)
+        {
             throw new ConnectionException(sprintf(
                 'Could not listen on socket: %s (%d)',
                 $errstr,
@@ -90,7 +91,8 @@ class ServerSocket extends UriSocket
             $this->options['timeout_accept']
         );
 
-        if (!$new) {
+        if (!$new)
+        {
             throw new ConnectionException(socket_strerror(socket_last_error($new)));
         }
 
@@ -102,7 +104,8 @@ class ServerSocket extends UriSocket
      */
     protected function getSocketStreamContextOptions()
     {
-        if (isset($this->options['backlog'])) {
+        if (isset($this->options['backlog']))
+        {
             return ['backlog' => $this->options['backlog']];
         }
         return [];

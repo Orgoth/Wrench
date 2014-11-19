@@ -16,7 +16,7 @@ use Application\Status\Events\StatusEvents;
  */
 class StatusApplication extends Application
 {
-    private $_clients = array();
+    private $_clients = [];
     
     protected $events = [
         'socket_connect'    => 'clientConnected',
@@ -102,16 +102,15 @@ class StatusApplication extends Application
     {
         $server = Server::getInstance();
         
-        $serverOptions = $server->getOptions();
         $serverClients = $server->getConnectionManager()->getConvertedConnections();
         $serverMemory = $server->getMemoryManager();
         
         $encodedData = $this->_encodeData('serverInfo', [
             'clientCount'           => count($serverClients),
             'clients'               => $serverClients,
-            'maxClients'            => $serverOptions['maxClients'],
-            'maxConnections'        => $serverOptions['maxConnections'],
-            'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute'],
+            'maxClients'            => $server->getMaxClients(),
+            'maxConnections'        => $server->getMaxRequestsPerIp(),
+            'maxRequestsPerMinute'  => $server->getMaxRequestsPerMinute(),
             'currentMemory'         => $serverMemory->getCurrentMemory(),
             'maxMemory'             => $serverMemory->getMaxMemory()
         ]);

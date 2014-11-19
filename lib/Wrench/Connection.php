@@ -2,16 +2,13 @@
 
 namespace Wrench;
 
-use InvalidArgumentException;
 use Wrench\Payload\PayloadHandler;
-
-use Wrench\Protocol\Protocol;
 
 use Wrench\Payload\Payload;
 
-use Wrench\Util\Configurable;
 use Wrench\Socket\ServerClientSocket;
 use Wrench\Server;
+use Wrench\Protocol\Protocol;
 use Wrench\Exception as WrenchException;
 use Wrench\Exception\CloseException;
 use Wrench\Exception\ConnectionException;
@@ -26,7 +23,7 @@ use \RuntimeException;
  *
  * i.e. the `Server` manages a bunch of `Connection`s
  */
-class Connection extends Configurable
+class Connection
 {
 
     /**
@@ -93,6 +90,10 @@ class Connection extends Configurable
      * @var PayloadHandler
      */
     protected $payloadHandler;
+    
+    protected $connectionIdSecret = 'asu5gj656h64Da(0crt8pud%^WAYWW$u76dwb';
+    
+    protected $connectionIdAlgo = 'sha512';
 
     /**
      * Constructor
@@ -100,36 +101,25 @@ class Connection extends Configurable
      * @param ServerClientSocket $socket
      * @param array              $options
      */
-    public function __construct(ServerClientSocket $socket, array $options = [])
+    public function __construct(ServerClientSocket $socket)
     {
         $this->socket = $socket;
 
-        parent::__construct($options);
-
-        $this->configure();
         $this->configureClientInformation();
         $this->configurePayloadHandler();
 
         Server::getInstance()->log('Connected');
     }
-
-    /**
-     * @see Wrench\Util.Configurable::configure()
-     */
-    protected function configure()
+    
+    public function __destruct()
     {
-        parent::configureOptions(array_merge([
-            'connection_id_secret' => 'asu5gj656h64Da(0crt8pud%^WAYWW$u76dwb',
-            'connection_id_algo'   => 'sha512',
-        ], $this->options));
+        unset($this->socket);
+        unset($this->payloadHandler);
     }
 
     protected function configurePayloadHandler()
     {
-        $this->payloadHandler = new PayloadHandler(
-            [$this, 'handlePayload'],
-            $this->options
-        );
+        $this->payloadHandler = new PayloadHandler([$this, 'handlePayload']);
     }
 
     /**
@@ -153,7 +143,7 @@ class Connection extends Configurable
     protected function configureClientId()
     {
         $message = 
-            $this->options['connection_id_secret'] . ':uri=' .
+            $this->connectionIdSecret . ':uri=' .
             rawurlencode(Server::getInstance()->getConnectionManager()->getUri()) . '&ip=' .
             rawurlencode($this->ip) . '&port=' .
             rawurlencode($this->port)
@@ -161,8 +151,8 @@ class Connection extends Configurable
 
         $this->id =
             (extension_loaded('gmp'))
-            ? gmp_strval(gmp_init('0x' . hash($this->options['connection_id_algo'], $message), 16), 62)
-            : hash($this->options['connection_id_algo'], $message)
+            ? gmp_strval(gmp_init('0x' . hash($this->connectionIdAlgo, $message), 16), 62)
+            : hash($this->connectionIdAlgo, $message)
         ;
     }
 
@@ -193,25 +183,27 @@ class Connection extends Configurable
     public function handshake($data)
     {
         try {
+            $server = Server::getInstance();
+            
             list($path, $origin, $key, $extensions, $protocol, $headers, $params)
-                = $this->protocol->validateRequestHandshake($data);
+                = $server->getProtocol()->validateRequestHandshake($data);
 
             $this->headers = $headers;
             $this->queryParams = $params;
             
-            $server = Server::getInstance();
 
             $this->application = $server->getConnectionManager()->getApplicationForPath($path);
-            if (!$this->application) {
+            if (!$this->application)
+            {
                 throw new BadRequestException('Invalid application');
             }
 
             $server->notify(
                 Server::EVENT_HANDSHAKE_REQUEST,
-                array($this, $path, $origin, $key, $extensions)
+                [$this, $path, $origin, $key, $extensions]
             );
 
-            $response = $this->protocol->getResponseHandshake($key);
+            $response = $server->getProtocol()->getResponseHandshake($key);
 
             if (!$this->socket->isConnected())
             {
@@ -352,7 +344,7 @@ class Connection extends Configurable
             throw new HandshakeException('Connection is not handshaked');
         }
 
-        $payload = $this->protocol->getPayload();
+        $payload = Server::getInstance()->getProtocol()->getPayload();
 
         // Servers don't send masked payloads
         $payload->encode($data, $type, false);
@@ -411,11 +403,15 @@ class Connection extends Configurable
         try {
             if (!$this->handshaked)
             {
-                $this->socket->send($this->protocol->getResponseError($code));
+                $this->socket->send(
+                    Server::getInstance()->getProtocol()->getResponseError($code)
+                );
             }
             else
             {
-                $this->socket->send($this->protocol->getCloseFrame($code));
+                $this->socket->send(
+                    Server::getInstance()->getProtocol()->getCloseFrame($code)
+                );
             }
         }
         catch (Exception $e)

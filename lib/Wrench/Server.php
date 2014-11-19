@@ -2,16 +2,15 @@
 
 namespace Wrench;
 
-use Wrench\Util\Configurable;
-
-use Wrench\Socket;
-use Wrench\Resource;
-
 use \Closure;
 use \InvalidArgumentException;
 
+use Wrench\Service\ConnectionManager;
 use Wrench\Service\MemoryManager;
 use Wrench\Service\Logger;
+
+use Wrench\Protocol\Protocol;
+use Wrench\Protocol\Rfc6455Protocol;
 
 /**
  * WebSocket server
@@ -23,7 +22,7 @@ use Wrench\Service\Logger;
  * @author Simon Samtleben <web@lemmingzshadow.net>
  * @author Dominic Scheirlinck <dominic@varspool.com>
  */
-class Server extends Configurable
+class Server
 {
     /**#@+
      * Events
@@ -45,13 +44,6 @@ class Server extends Configurable
     protected $uri;
 
     /**
-     * Options
-     *
-     * @var array
-     */
-    protected $options = array();
-
-    /**
      * A logging callback
      *
      * The default callback simply prints to stdout. You can pass your own logger
@@ -69,7 +61,7 @@ class Server extends Configurable
      *
      * @var array<string => array<Closure>>
      */
-    protected $listeners = array();
+    protected $listeners = [];
 
     /**
      * Connection manager
@@ -84,13 +76,27 @@ class Server extends Configurable
      * @var MemoryManager 
      */
     protected $memoryManager;
+    
+    /**
+     * @var Protocol
+     */
+    protected $protocol;
 
     /**
      * Applications
      *
      * @var array<string => Application>
      */
-    protected $applications = array();
+    protected $applications = [];
+    
+    /** @var integer **/
+    protected $maxRequestsPerMinute;
+    
+    /** @var integer **/
+    protected $maxRequestsPerIp;
+    
+    /** @var integer **/
+    protected $maxClients;
     
     /**
      * Contains the instance for Singleton pattern
@@ -110,15 +116,13 @@ class Server extends Configurable
      *                     be ignored
      * @param array $options (optional) See configure
      */
-    public function init($uri, array $options = array())
+    public function init($uri)
     {
         $this->uri = $uri;
 
-        parent::__construct($options);
-
         $this->configure();
         
-        $this->log('Server initialized on '.$uri, 'info');
+        $this->log("Server initialized on $uri", 'info');
     }
 
     /**
@@ -135,14 +139,25 @@ class Server extends Configurable
      */
     protected function configure()
     {
-        parent::configureOptions(array_merge([
-            'connection_manager_class'   => 'Wrench\Service\ConnectionManager',
-            'connection_manager_options' => []
-        ], $this->options));
-
+        $this->configureProtocol();
         $this->configureConnectionManager();
         $this->configureLogger();
         $this->configureMemoryManager();
+    }
+    
+    /**
+     * Configures the protocol option
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function configureProtocol()
+    {
+        $this->protocol = new Rfc6455Protocol();
+
+        if (!$this->protocol || !($this->protocol instanceof Protocol))
+        {
+            throw new InvalidArgumentException('Invalid protocol option');
+        }
     }
 
     /**
@@ -162,9 +177,7 @@ class Server extends Configurable
      */
     protected function configureConnectionManager()
     {
-        $this->connectionManager = new $this->options['connection_manager_class'](
-            $this->options['connection_manager_options']
-        );
+        $this->connectionManager = new ConnectionManager();
     }
     
     protected function configureMemoryManager()
@@ -331,6 +344,11 @@ class Server extends Configurable
         $this->log('Application added : '.$key, 'info');
     }
     
+    public function getProtocol()
+    {
+        return $this->protocol;
+    }
+    
     public static function getInstance()
     {
         if(self::$instance === null)
@@ -338,5 +356,35 @@ class Server extends Configurable
             self::$instance = new self();
         }
         return self::$instance;
+    }
+    
+    public function setMaxRequestsPerMinute($maxRequestsPerMinute)
+    {
+        $this->maxRequestsPerMinute = $maxRequestsPerMinute;
+    }
+    
+    public function getMaxRequestsPerMinute()
+    {
+        return $this->maxRequestsPerMinute;
+    }
+    
+    public function setMaxClients($maxClients)
+    {
+        $this->maxClients = $maxClients;
+    }
+    
+    public function getMaxClients()
+    {
+        return $this->maxClients;
+    }
+    
+    public function setMaxRequestsPerIp($maxRequestsPerIp)
+    {
+        $this->maxRequestsPerIp = $maxRequestsPerIp;
+    }
+    
+    public function getMaxRequestsPerIp()
+    {
+        return $this->maxRequestsPerIp;
     }
 }

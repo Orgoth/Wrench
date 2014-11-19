@@ -3,17 +3,15 @@
 namespace Wrench\Service;
 
 use InvalidArgumentException;
-use Wrench\Protocol\Protocol;
-use Wrench\Resource;
-use Wrench\Util\Configurable;
 use Wrench\Exception\Exception as WrenchException;
 use Wrench\Exception\CloseException;
 use \Exception;
-use \Countable;
 use Wrench\Server;
 use Wrench\Connection;
+use Wrench\Socket\ServerSocket;
+use Wrench\Socket\ServerClientSocket;
 
-class ConnectionManager extends Configurable implements Countable
+class ConnectionManager
 {
     const TIMEOUT_SELECT          = 0;
     const TIMEOUT_SELECT_MICROSEC = 200000;
@@ -30,25 +28,30 @@ class ConnectionManager extends Configurable implements Countable
      *
      * @var array<int => Connection>
      */
-    protected $connections = array();
+    protected $connections = [];
 
     /**
      * An array of raw socket resources, corresponding to connections, roughly
      *
      * @var array<int => resource>
      */
-    protected $resources = array();
+    protected $resources = [];
 
     /**
      * Constructor
      *
      * @param array $options
      */
-    public function __construct(array $options = array())
+    public function __construct()
     {
-        parent::__construct($options);
-        
         $this->configure();
+    }
+    
+    public function __destruct()
+    {
+        unset($this->socket);
+        unset($this->connections);
+        unset($this->resources);
     }
 
     /**
@@ -67,17 +70,6 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function configure()
     {
-        parent::configureOptions(array_merge([
-            'socket_master_class'     => 'Wrench\Socket\ServerSocket',
-            'socket_master_options'   => [],
-            'socket_client_class'     => 'Wrench\Socket\ServerClientSocket',
-            'socket_client_options'   => [],
-            'connection_class'        => 'Wrench\Connection',
-            'connection_options'      => [],
-            'timeout_select'          => self::TIMEOUT_SELECT,
-            'timeout_select_microsec' => self::TIMEOUT_SELECT_MICROSEC
-        ], $this->options));
-
         $this->configureMasterSocket();
     }
 
@@ -98,9 +90,7 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function configureMasterSocket()
     {
-        $this->socket = new $this->options['socket_master_class'](
-            $this->getUri(), $this->options['socket_master_options']
-        );
+        $this->socket = new ServerSocket($this->getUri());
     }
 
     /**
@@ -134,7 +124,8 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function getConnectionForClientSocket($socket)
     {
-        if (!isset($this->connections[$this->resourceId($socket)])) {
+        if (!isset($this->connections[$this->resourceId($socket)]))
+        {
             return false;
         }
         return $this->connections[$this->resourceId($socket)];
@@ -153,8 +144,8 @@ class ConnectionManager extends Configurable implements Countable
             $read,
             $unused_write,
             $unused_exception,
-            $this->options['timeout_select'],
-            $this->options['timeout_select_microsec']
+            self::TIMEOUT_SELECT,
+            self::TIMEOUT_SELECT_MICROSEC
         );
 
         foreach ($read as $socket)
@@ -205,16 +196,12 @@ class ConnectionManager extends Configurable implements Countable
      */
     protected function createConnection($resource)
     {
-        if (!$resource || !is_resource($resource)) {
+        if (!$resource || !is_resource($resource))
+        {
             throw new InvalidArgumentException('Invalid connection resource');
         }
         
-        $connection = new $this->options['connection_class'](
-            new $this->options['socket_client_class'](
-                $resource, $this->options['socket_client_options']
-            ),
-            $this->options['connection_options']
-        );
+        $connection = new Connection(new ServerClientSocket($resource));
 
         $id = $this->resourceId($resource);
         $this->resources[$id] = $resource;

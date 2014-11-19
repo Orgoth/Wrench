@@ -20,7 +20,7 @@ use \InvalidArgumentException;
  * represents a single underlying socket resource. It's designed to be used
  * by aggregation, rather than inheritance.
  */
-abstract class Socket extends Configurable implements Resource
+abstract class Socket implements Resource
 {
     /**
      * Default timeout for socket operations (reads, writes)
@@ -77,22 +77,6 @@ abstract class Socket extends Configurable implements Resource
      * @var string
      */
     protected $name;
-
-    /**
-     * Configure options
-     *
-     * Options include
-     *   - timeout_socket       => int, seconds, default 5
-     *
-     * @param array $options
-     * @return void
-     */
-    protected function configure()
-    {
-        parent::configureOptions(array_merge([
-            'timeout_socket' => self::TIMEOUT_SOCKET,
-        ], $this->options));
-    }
 
     /**
      * Gets the name of the socket

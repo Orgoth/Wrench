@@ -15,12 +15,8 @@ class ServerClientSocket extends Socket
      * @param resource $accepted_socket
      * @param array $options
      */
-    public function __construct($accepted_socket, array $options = array())
+    public function __construct($accepted_socket)
     {
-        parent::__construct($options);
-
-        $this->configure();
-        
         $this->socket = $accepted_socket;
         $this->connected = (boolean)$accepted_socket;
     }

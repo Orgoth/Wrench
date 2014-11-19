@@ -2,40 +2,27 @@
 
 namespace Wrench\Socket;
 
-use Wrench\Protocol\Protocol;
-
 use Wrench\Socket\Socket;
+use Wrench\Server;
+use Wrench\Protocol\Protocol;
 
 abstract class UriSocket extends Socket
 {
     protected $scheme;
     protected $host;
     protected $port;
-
+    
     /**
      * URI Socket constructor
      *
      * @param string $uri     WebSocket URI, e.g. ws://example.org:8000/chat
-     * @param array  $options (optional)
-     *   Options:
-     *     - protocol             => Wrench\Protocol object, latest protocol
-     *                                 version used if not specified
-     *     - timeout_socket       => int, seconds, default 5
-     *     - server_ssl_cert_file => string, server SSL certificate
-     *                                 file location. File should contain
-     *                                 certificate and private key
-     *     - server_ssl_passphrase => string, passphrase for the key
-     *     - server_ssl_allow_self_signed => boolean, whether to allows self-
-     *                                 signed certs
      */
-    public function __construct($uri, array $options = array())
+    public function __construct($uri)
     {
-        parent::__construct($options);
-
         list($this->scheme, $this->host, $this->port)
-            = $this->protocol->validateSocketUri($uri);
+            = Server::getInstance()->getProtocol()->validateSocketUri($uri);
     }
-
+    
     /**
      * Gets the canonical/normalized URI for this socket
      *
@@ -43,12 +30,7 @@ abstract class UriSocket extends Socket
      */
     protected function getUri()
     {
-        return sprintf(
-            '%s://%s:%d',
-            $this->scheme,
-            $this->host,
-            $this->port
-        );
+        return "{$this->scheme}://{$this->host}:{$this->port}";
     }
 
     /**
@@ -57,7 +39,7 @@ abstract class UriSocket extends Socket
      */
     protected function getName()
     {
-        return sprintf('%s:%s', $this->host, $this->port);
+        return "{$this->host}:{$this->port}";
     }
 
     /**
@@ -79,14 +61,16 @@ abstract class UriSocket extends Socket
     /**
      * Gets a stream context
      */
-    protected function getStreamContext($listen = false)
+    protected function getStreamContext()
     {
         if ($this->scheme == Protocol::SCHEME_UNDERLYING_SECURE
-            || $this->scheme == Protocol::SCHEME_UNDERLYING) {
+            || $this->scheme == Protocol::SCHEME_UNDERLYING)
+        {
             $options['socket'] = $this->getSocketStreamContextOptions();
         }
 
-        if ($this->scheme == Protocol::SCHEME_UNDERLYING_SECURE) {
+        if ($this->scheme == Protocol::SCHEME_UNDERLYING_SECURE)
+        {
             $options['ssl'] = $this->getSslStreamContextOptions();
         }
 

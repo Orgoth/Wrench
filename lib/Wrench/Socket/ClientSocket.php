@@ -16,9 +16,9 @@ class ClientSocket extends UriSocket
      */
     const TIMEOUT_CONNECT = 2;
 
-    public function __construct($uri, array $options = array())
+    public function __construct($uri)
     {
-        parent::__construct($uri, $options);
+        parent::__construct($uri);
         
         $this->configure();
     }
@@ -34,11 +34,11 @@ class ClientSocket extends UriSocket
      */
     protected function configure()
     {
-        parent::configureOptions(array_merge([
+        $this->options = [
             'timeout_connect'       => self::TIMEOUT_CONNECT,
             'ssl_verify_peer'       => false,
             'ssl_allow_self_signed' => true
-        ], $this->options));
+        ];
     }
 
     /**
@@ -46,7 +46,8 @@ class ClientSocket extends UriSocket
      */
     public function connect()
     {
-        if ($this->isConnected()) {
+        if ($this->isConnected())
+        {
             return true;
         }
 
@@ -63,7 +64,8 @@ class ClientSocket extends UriSocket
             $this->getStreamContext()
         );
 
-        if (!$this->socket) {
+        if (!$this->socket)
+        {
             throw new \Wrench\Exception\ConnectionException(sprintf(
                 'Could not connect to socket: %s (%d)',
                 $errstr,
@@ -96,7 +98,7 @@ class ClientSocket extends UriSocket
      */
     protected function getSslStreamContextOptions()
     {
-        $options = array();
+        $options = [];
 
         if ($this->options['ssl_verify_peer']) {
             $options['verify_peer'] = true;
