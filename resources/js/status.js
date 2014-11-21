@@ -27,16 +27,16 @@
             
         };
         
-        $scope.$on('$destroy', function()
-        {
-            $scope.socket.close();
-        });
-        
         $scope.open = function(data)
         {
             $scope.statusButtonClass = 'online';
             $scope.statusButtonText = 'online';
             $scope.$apply();
+        };
+        
+        window.onbeforeunload = function (event)
+        {
+            $scope.socket.close();
         };
         
         $scope.close = function(data)
@@ -55,8 +55,8 @@
         $scope.message = function(message)
         {
             var response = JSON.parse(message.data);
-            console.log(response);
-            switch (response.action) {
+            switch (response.action)
+            {
               case "statusMsg":
                 return $scope.statusMsg(response.data);
               case "clientConnected":
