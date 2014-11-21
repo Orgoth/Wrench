@@ -108,7 +108,6 @@ class StatusApplication extends Application
         
         $encodedData = $this->_encodeData('serverInfo', [
             'clientCount'           => count($serverClients),
-            'clients'               => $serverClients,
             'maxClients'            => $serverOptions['maxClients'],
             'maxConnections'        => $serverOptions['maxConnections'],
             'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute'],

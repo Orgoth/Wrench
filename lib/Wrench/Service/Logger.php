@@ -22,6 +22,7 @@
             'important' => 'blue',
             'validate'  => 'green',
             'warning'   => 'light_red',
+            'warn'      => 'light_red',
             'error'     => 'red',
             'notice'    => 'yellow',
             'debug'     => 'yellow',
