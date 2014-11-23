@@ -6,6 +6,8 @@ use Wrench\Util\Application;
 use Wrench\Connection;
 use Wrench\Server;
 
+use Wrench\Exception\HandshakeException;
+
 use Application\Status\Events\StatusEvents;
 
 /**
@@ -108,7 +110,14 @@ class StatusApplication extends Application
         $clients = Server::getInstance()->getConnectionManager()->getConnections();
         foreach ($clients as $sendto)
         {
-            $sendto->send($encodedData);
+            try
+            {
+                $sendto->send($encodedData);
+            }
+            catch (HandshakeException $ex)
+            {
+                continue;
+            }
         }
     }
 }
