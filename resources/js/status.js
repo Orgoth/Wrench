@@ -113,7 +113,7 @@
             var index = $scope.clientsList.map(function(e){ return e.port }).indexOf(data.port);
             if(index !== -1)
             {
-                $scope.clientsList.splice($scope.clientsList[index], 1);
+                $scope.clientsList.splice(index, 1);
             }
             $scope.currentMemory    = data.currentMemory;
             $scope.maxMemory        = data.maxMemory;
