@@ -32,6 +32,12 @@
             $scope.statusButtonClass = 'online';
             $scope.statusButtonText = 'online';
             $scope.$apply();
+            $scope.askInformations();
+        };
+        
+        $scope.askInformations = function()
+        {
+            $scope.socket.send(JSON.stringify({"action" : "askInformations", "data" : ""}));
         };
         
         window.onbeforeunload = function (event)

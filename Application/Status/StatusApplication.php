@@ -30,7 +30,11 @@ class StatusApplication extends Application
 
     public function onData($data, $client)
     {
-        // currently not in use...
+        $payload = json_decode($data->getPayload());
+        if($payload->action === 'askInformations')
+        {
+            $this->_sendServerInfo($client);
+        }
     }
 
     public function clientConnected($ip, $port)
