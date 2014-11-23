@@ -10,7 +10,7 @@
         $scope.data;
         $scope.fileAction = 'setFilename';
         
-        $scope.serverUrl = 'ws://localhost:8000/status';
+        $scope.serverUrl = 'ws://localhost:8000/demo';
         $scope.statusButtonClass = 'offline';
         $scope.statusButtonText = 'offline';
         
