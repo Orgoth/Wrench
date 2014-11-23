@@ -9,6 +9,7 @@
         public function clientConnected($data)
         {
             $this->parent->clientConnected($data[1]->getIp(), $data[1]->getPort());
+            $this->parent->_sendServerInfo();
         }
 
         public function clientDisconnected($data)

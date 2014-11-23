@@ -16,8 +16,6 @@ use Application\Status\Events\StatusEvents;
  */
 class StatusApplication extends Application
 {
-    private $_clients = array();
-    
     protected $events = [
         'socket_connect'    => 'clientConnected',
         'socket_disconnect' => 'clientDisconnected'
@@ -26,25 +24,6 @@ class StatusApplication extends Application
     public function setEventManager()
     {
         $this->eventManager = new StatusEvents($this);
-    }
-    
-    /**
-     * @param Connection $client
-     */
-    public function onConnect($client)
-    {
-        $this->_clients[$client->getId()] = $client;
-        $this->clientConnected($client->getIp(), $client->getPort());
-        $this->_sendServerInfo($client);
-    }
-
-    /**
-     * @param Connection $client
-     */
-    public function onDisconnect($client)
-    {
-        $this->clientDisconnected($client->getIp(), $client->getPort());
-        unset($this->_clients[$client->getId()]);
     }
 
     public function onData($data, $client)
@@ -126,11 +105,9 @@ class StatusApplication extends Application
 
     public function _sendAll($encodedData)
     {
-        if (count($this->_clients) < 1) {
-            return false;
-        }
-
-        foreach ($this->_clients as $sendto) {
+        $clients = Server::getInstance()->getConnectionManager()->getConnections();
+        foreach ($clients as $sendto)
+        {
             $sendto->send($encodedData);
         }
     }

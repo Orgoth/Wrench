@@ -9,10 +9,6 @@ use Wrench\Util\Application;
  */
 class DemoApplication extends Application
 {
-    public function onConnect($connection){}
-    
-    public function onDisconnect($connection){}
-    
     /**
      * @see Wrench\Util\Application::onData()
      */

@@ -10,18 +10,6 @@ abstract class Application
     protected $events = [];
     protected $eventManager;
     
-    /**
-     * Optional: handle a connection
-     */
-    abstract public function onConnect($connection);
-
-    /**
-     * Optional: handle a disconnection
-     *
-     * @param
-     */
-    abstract public function onDisconnect($connection);
-    
     
     public function onNotification($type, $data)
     {

@@ -11,29 +11,12 @@ use Wrench\Util\Application;
  */
 class ServerTimeApplication extends Application
 {
-    protected $clients = array();
     protected $lastTimestamp = null;
 
     public function setEventManager()
     {
         
     }
-    
-    /**
-     * @see Wrench\Util.Application::onConnect()
-     */
-    public function onConnect($client)
-    {
-        $this->clients[] = $client;
-    }
-    
-    /**
-     * @see Wrench\Util.Application::onDisconnect()
-     */
-    public function onDisconnect($connection) {
-        unset($this->clients[$connection->getPort()]);
-    }
-
     /**
      * Handle data received from a client
      *
