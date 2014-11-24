@@ -12,6 +12,7 @@ use \InvalidArgumentException;
 
 use Wrench\Service\MemoryManager;
 use Wrench\Service\Logger;
+use Wrench\Listener\RateLimiter;
 
 /**
  * WebSocket server
@@ -84,6 +85,8 @@ class Server extends Configurable
      * @var MemoryManager 
      */
     protected $memoryManager;
+    
+    protected $rateLimiter;
 
     /**
      * Applications
@@ -170,6 +173,15 @@ class Server extends Configurable
     protected function configureMemoryManager()
     {
         $this->memoryManager = new MemoryManager();
+    }
+    
+    protected function setRateLimiter($maxClients, $connectionsPerIp, $requestsPerMinute)
+    {
+        $this->rateLimiter = new RateLimiter([
+            'connections'         => $maxClients,
+            'connections_per_ip'  => $connectionsPerIp,
+            'requests_per_minute' => $requestsPerMinute
+        ]);
     }
 
     /**
@@ -338,5 +350,10 @@ class Server extends Configurable
             self::$instance = new self();
         }
         return self::$instance;
+    }
+    
+    public function getRateLimiter()
+    {
+        return $this->rateLimiter;
     }
 }
