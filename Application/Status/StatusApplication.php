@@ -87,15 +87,15 @@ class StatusApplication extends Application
     {
         $server = Server::getInstance();
         
-        $serverOptions = $server->getOptions();
+        $serverOptions = $server->getRateLimiter()->getOptions();
         $serverClients = $server->getConnectionManager()->getConvertedConnections();
         $serverMemory = $server->getMemoryManager();
         
         $encodedData = $this->_encodeData('serverInfo', [
             'clientCount'           => count($serverClients),
-            'maxClients'            => $serverOptions['maxClients'],
-            'maxConnections'        => $serverOptions['maxConnections'],
-            'maxRequestsPerMinute'  => $serverOptions['maxRequestsPerMinute'],
+            'maxClients'            => $serverOptions['connections'],
+            'maxConnections'        => $serverOptions['connections_per_ip'],
+            'maxRequestsPerMinute'  => $serverOptions['requests_per_minute'],
             'currentMemory'         => $serverMemory->getCurrentMemory(),
             'maxMemory'             => $serverMemory->getMaxMemory()
         ]);

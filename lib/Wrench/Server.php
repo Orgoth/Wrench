@@ -175,13 +175,13 @@ class Server extends Configurable
         $this->memoryManager = new MemoryManager();
     }
     
-    protected function setRateLimiter($maxClients, $connectionsPerIp, $requestsPerMinute)
+    public function setRateLimiter($maxClients, $connectionsPerIp, $requestsPerMinute)
     {
-        $this->rateLimiter = new RateLimiter([
-            'connections'         => $maxClients,
-            'connections_per_ip'  => $connectionsPerIp,
-            'requests_per_minute' => $requestsPerMinute
-        ]);
+        $this->rateLimiter = new RateLimiter(
+            $maxClients,
+            $connectionsPerIp,
+            $requestsPerMinute
+        );
     }
 
     /**

@@ -2,46 +2,38 @@
 
 namespace Wrench\Listener;
 
-use Wrench\Util\Configurable;
 use Wrench\Server;
 
-class RateLimiter extends Configurable implements Listener
+class RateLimiter implements Listener
 {
     /**
      * Connection counts per IP address
      *
      * @var array<int>
      */
-    protected $ips = array();
+    protected $ips = [];
 
     /**
      * Request tokens per IP address
      *
      * @var array<array<int>>
      */
-    protected $requests = array();
+    protected $requests = [];
+    
+    protected $options = [];
 
     /**
      * Constructor
      *
      * @param array $options
      */
-    public function __construct(array $options = array())
+    public function __construct($maxClients, $connectionsPerIp, $requestsPerMinute)
     {
-        parent::__construct($options);
-        $this->configure();
-    }
-
-    /**
-     * @param array $options
-     */
-    protected function configure()
-    {
-        parent::configureOptions(array_merge([
-            'connections'         => 200, // Total
-            'connections_per_ip'  => 5,   // At once
-            'requests_per_minute' => 200  // Per connection
-        ], $this->options));
+        $this->options = [
+            'connections'         => $maxClients, // Total
+            'connections_per_ip'  => $connectionsPerIp,   // At once
+            'requests_per_minute' => $requestsPerMinute  // Per connection
+        ];
     }
 
     /**
@@ -208,15 +200,9 @@ class RateLimiter extends Configurable implements Listener
 
         $connection->close(new RateLimiterException($limit));
     }
-
-    /**
-     * Logger
-     *
-     * @param string $message
-     * @param string $priority
-     */
-    public function log($message, $priority = 'info')
+    
+    public function getOptions()
     {
-        Server::getInstance()->log('RateLimiter: ' . $message, $priority);
+        return $this->options;
     }
 }
