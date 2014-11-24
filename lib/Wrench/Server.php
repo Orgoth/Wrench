@@ -13,6 +13,7 @@ use \InvalidArgumentException;
 use Wrench\Service\MemoryManager;
 use Wrench\Service\Logger;
 use Wrench\Listener\RateLimiter;
+use Wrench\Listener\OriginPolicy;
 
 /**
  * WebSocket server
@@ -86,7 +87,11 @@ class Server extends Configurable
      */
     protected $memoryManager;
     
+    /** @var RateLimiter **/
     protected $rateLimiter;
+    
+    /** @var OriginPolicy **/
+    protected $originPolicy;
 
     /**
      * Applications
@@ -182,6 +187,11 @@ class Server extends Configurable
             $connectionsPerIp,
             $requestsPerMinute
         );
+    }
+    
+    public function setOriginPolicy($origins)
+    {
+        $this->originPolicy = new OriginPolicy($origins);
     }
 
     /**
@@ -355,5 +365,10 @@ class Server extends Configurable
     public function getRateLimiter()
     {
         return $this->rateLimiter;
+    }
+    
+    public function getOriginPolicy()
+    {
+        return $this->originPolicy;
     }
 }
