@@ -8,13 +8,6 @@ use Wrench\Server;
 class RateLimiter extends Configurable implements Listener
 {
     /**
-     * The server being limited
-     *
-     * @var Server
-     */
-    protected $server;
-
-    /**
      * Connection counts per IP address
      *
      * @var array<int>
@@ -56,7 +49,7 @@ class RateLimiter extends Configurable implements Listener
      */
     public function listen(Server $server)
     {
-        $this->server = $server;
+        $server = Server::getInstance();
 
         $server->addListener(
             Server::EVENT_SOCKET_CONNECT,
@@ -132,7 +125,7 @@ class RateLimiter extends Configurable implements Listener
         $ip = $connection->getIp();
 
         if (!$ip) {
-            $this->log('Cannot check connections per IP', 'warning');
+            Server::getInstance()->log('Cannot check connections per IP', 'warning');
             return;
         }
 
@@ -160,7 +153,7 @@ class RateLimiter extends Configurable implements Listener
         $ip = $connection->getIp();
 
         if (!$ip) {
-            $this->log('Cannot release connection', 'warning');
+            Server::getInstance()->log('Cannot release connection', 'warning');
             return;
         }
 
@@ -207,7 +200,7 @@ class RateLimiter extends Configurable implements Listener
      */
     protected function limit($connection, $limit)
     {
-        $this->log(sprintf(
+        Server::getInstance()->log(sprintf(
             'Limiting connection %s: %s',
             $connection->getIp(),
             $limit
@@ -224,6 +217,6 @@ class RateLimiter extends Configurable implements Listener
      */
     public function log($message, $priority = 'info')
     {
-        $this->server->log('RateLimiter: ' . $message, $priority);
+        Server::getInstance()->log('RateLimiter: ' . $message, $priority);
     }
 }
