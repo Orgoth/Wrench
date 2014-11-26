@@ -112,7 +112,7 @@ class Connection extends Configurable
         $this->configureClientInformation();
         $this->configurePayloadHandler();
 
-        $this->log('Connected');
+        Server::getInstance()->log('Connected');
     }
 
     /**
@@ -178,7 +178,8 @@ class Connection extends Configurable
      */
     public function onData($data)
     {
-        if (!$this->handshaked) {
+        if (!$this->handshaked)
+        {
             return $this->handshake($data);
         }
         return $this->handle($data);
@@ -225,7 +226,7 @@ class Connection extends Configurable
 
             $this->handshaked = true;
 
-            $this->log(sprintf(
+            $server->log(sprintf(
                 'Handshake successful: %s:%d connected to %s',
                 $this->getIp(),
                 $this->getPort(),
@@ -241,7 +242,7 @@ class Connection extends Configurable
                 $this->application->onConnect($this);
             }
         } catch (WrenchException $e) {
-            $this->log('Handshake failed: ' . $e, 'err');
+            $server->log('Handshake failed: ' . $e, 'err');
             $this->close($e);
         }
     }
@@ -287,8 +288,9 @@ class Connection extends Configurable
     public function handlePayload(Payload $payload)
     {
         $app = $this->getClientApplication();
+        $server = Server::getInstance();
 
-        $this->log('Handling payload: ' . $payload->getPayload(), 'debug');
+        $server->log('Handling payload: ' . $payload->getPayload(), 'debug');
 
         switch ($type = $payload->getType()) {
             case Protocol::TYPE_TEXT:
@@ -306,9 +308,9 @@ class Connection extends Configurable
             break;
 
             case Protocol::TYPE_PING:
-                $this->log('Ping received', 'notice');
+                $server->log('Ping received', 'notice');
                 $this->send($payload->getPayload(), Protocol::TYPE_PONG);
-                $this->log('Pong!', 'debug');
+                $server->log('Pong!', 'debug');
             break;
 
             /**
@@ -317,13 +319,13 @@ class Connection extends Configurable
              * frame is not expected.
              */
             case Protocol::TYPE_PONG:
-                $this->log('Received unsolicited pong', 'info');
+                $server->log('Received unsolicited pong', 'info');
             break;
 
             case Protocol::TYPE_CLOSE:
-                $this->log('Close frame received', 'notice');
+                $server->log('Close frame received', 'notice');
                 $this->close();
-                $this->log('Disconnected', 'info');
+                $server->log('Disconnected', 'info');
             break;
 
             default:
@@ -352,7 +354,7 @@ class Connection extends Configurable
         $payload->encode($data, $type, false);
 
         if (!$payload->sendToSocket($this->socket)) {
-            $this->log('Could not send payload to client', 'warn');
+            Server::getInstance()->log('Could not send payload to client', 'warning');
             throw new ConnectionException('Could not send data to connection: ' . $this->socket->getLastError());
         }
 
@@ -413,7 +415,7 @@ class Connection extends Configurable
         }
         catch (Exception $e)
         {
-            $this->log('Unable to send close message', 'warning');
+            Server::getInstance()->log('Unable to send close message', 'warning');
         }
 
         if ($this->application && method_exists($this->application, 'onDisconnect'))
@@ -423,23 +425,6 @@ class Connection extends Configurable
 
         $this->socket->disconnect();
         Server::getInstance()->getConnectionManager()->removeConnection($this);
-    }
-
-    /**
-     * Logs a message
-     *
-     * @param string $message
-     * @param string $priority
-     */
-    public function log($message, $priority = 'info')
-    {
-        Server::getInstance()->getConnectionManager()->log(sprintf(
-            '%s: %s:%d: %s',
-            __CLASS__,
-            $this->getIp(),
-            $this->getPort(),
-            $message
-        ), $priority);
     }
 
     /**
