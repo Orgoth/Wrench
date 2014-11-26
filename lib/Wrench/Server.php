@@ -95,6 +95,9 @@ class Server
     
     /** @var OriginPolicy **/
     protected $originPolicy;
+    
+    /** @var boolean **/
+    protected $shutdown = false;
 
     /**
      * Applications
@@ -239,7 +242,8 @@ class Server
         $this->connectionManager->listen();
         $this->memoryManager->init();
 
-        while (true) {
+        while ($this->shutdown === false)
+        {
             /*
              * If there's nothing changed on any of the sockets, the server
              * will sleep and other processes will have a change to run. Control
@@ -248,6 +252,12 @@ class Server
             $this->connectionManager->selectAndProcess();
             $this->memoryManager->refreshMemory();
         }
+    }
+    
+    public function shutdown()
+    {
+        $this->shutdown = true;
+        $this->log('Requested Shutdown of the server', 'validate');
     }
 
     /**

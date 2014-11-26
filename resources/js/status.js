@@ -27,6 +27,11 @@
             
         };
         
+        $scope.shutdown = function()
+        {
+            $scope.socket.send(JSON.stringify({"action" : "shutdown", "data" : ""}));
+        }
+        
         $scope.open = function(data)
         {
             $scope.statusButtonClass = 'online';

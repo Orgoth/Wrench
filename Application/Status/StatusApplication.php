@@ -35,6 +35,10 @@ class StatusApplication extends Application
         {
             $this->_sendServerInfo($client);
         }
+        elseif($payload->action === 'shutdown')
+        {
+            Server::getInstance()->shutdown();
+        }
     }
 
     public function clientConnected($ip, $port)
