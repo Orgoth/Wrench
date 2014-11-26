@@ -14,6 +14,9 @@ use Wrench\Service\MemoryManager;
 use Wrench\Service\Logger;
 use Wrench\Listener\RateLimiter;
 use Wrench\Listener\OriginPolicy;
+use Wrench\Service\ConnectionManager;
+use Wrench\Protocol\Rfc6455Protocol;
+use Wrench\Protocol\Protocol;
 
 /**
  * WebSocket server
@@ -25,7 +28,7 @@ use Wrench\Listener\OriginPolicy;
  * @author Simon Samtleben <web@lemmingzshadow.net>
  * @author Dominic Scheirlinck <dominic@varspool.com>
  */
-class Server extends Configurable
+class Server
 {
     /**#@+
      * Events
@@ -100,6 +103,9 @@ class Server extends Configurable
      */
     protected $applications = array();
     
+    /** @var Protocol **/ 
+    protected $protocol;
+    
     /**
      * Contains the instance for Singleton pattern
      * 
@@ -118,11 +124,9 @@ class Server extends Configurable
      *                     be ignored
      * @param array $options (optional) See configure
      */
-    public function init($uri, array $options = array())
+    public function init($uri)
     {
         $this->uri = $uri;
-
-        parent::__construct($options);
 
         $this->configure();
         
@@ -132,25 +136,28 @@ class Server extends Configurable
     /**
      * Configure options
      *
-     * Options include
-     *   - socket_class      => The socket class to use, defaults to ServerSocket
-     *   - socket_options    => An array of socket options
-     *   - logger            => Closure($message, $priority = 'info'), used
-     *                                 for logging
-     *
-     * @param array $options
      * @return void
      */
     protected function configure()
     {
-        parent::configureOptions(array_merge([
-            'connection_manager_class'   => 'Wrench\Service\ConnectionManager',
-            'connection_manager_options' => []
-        ], $this->options));
-
+        $this->configureProtocol();
         $this->configureConnectionManager();
         $this->configureLogger();
         $this->configureMemoryManager();
+    }
+
+    /**
+     * Configures the protocol option
+     *
+     * @throws InvalidArgumentException
+     */
+    protected function configureProtocol()
+    {
+        $this->protocol = new Rfc6455Protocol();
+
+        if (!$this->protocol || !($this->protocol instanceof Protocol)) {
+            throw new InvalidArgumentException('Invalid protocol option');
+        }
     }
 
     /**
@@ -170,9 +177,7 @@ class Server extends Configurable
      */
     protected function configureConnectionManager()
     {
-        $this->connectionManager = new $this->options['connection_manager_class'](
-            $this->options['connection_manager_options']
-        );
+        $this->connectionManager = new ConnectionManager();
     }
     
     protected function configureMemoryManager()
@@ -372,5 +377,10 @@ class Server extends Configurable
     public function getOriginPolicy()
     {
         return $this->originPolicy;
+    }
+    
+    public function getProtocol()
+    {
+        return $this->protocol;
     }
 }

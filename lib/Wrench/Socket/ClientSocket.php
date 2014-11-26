@@ -15,30 +15,14 @@ class ClientSocket extends UriSocket
      * @var int seconds
      */
     const TIMEOUT_CONNECT = 2;
-
-    public function __construct($uri, array $options = array())
-    {
-        parent::__construct($uri, $options);
-        
-        $this->configure();
-    }
     
-    /**
-     * @see Wrench\Socket.Socket::configure()
-     *   Options include:
-     *     - ssl_verify_peer       => boolean, whether to perform peer verification
-     *                                 of SSL certificate used
-     *     - ssl_allow_self_signed => boolean, whether ssl_verify_peer allows
-     *                                 self-signed certs
-     *     - timeout_connect       => int, seconds, default 2
-     */
-    protected function configure()
+    protected $ssl_verify_peer = false;
+    
+    protected $ssl_allow_self_signed = true;
+
+    public function __construct($uri)
     {
-        parent::configureOptions(array_merge([
-            'timeout_connect'       => self::TIMEOUT_CONNECT,
-            'ssl_verify_peer'       => false,
-            'ssl_allow_self_signed' => true
-        ], $this->options));
+        parent::__construct($uri);
     }
 
     /**
@@ -58,7 +42,7 @@ class ClientSocket extends UriSocket
             $this->getUri(),
             $errno,
             $errstr,
-            $this->options['timeout_connect'],
+            self::TIMEOUT_CONNECT,
             STREAM_CLIENT_CONNECT,
             $this->getStreamContext()
         );
@@ -71,7 +55,7 @@ class ClientSocket extends UriSocket
             ));
         }
 
-        stream_set_timeout($this->socket, $this->options['timeout_socket']);
+        stream_set_timeout($this->socket, self::TIMEOUT_SOCKET);
 
         return ($this->connected = true);
     }
@@ -98,11 +82,11 @@ class ClientSocket extends UriSocket
     {
         $options = array();
 
-        if ($this->options['ssl_verify_peer']) {
+        if ($this->ssl_verify_peer) {
             $options['verify_peer'] = true;
         }
 
-        if ($this->options['ssl_allow_self_signed']) {
+        if ($this->ssl_allow_self_signed) {
             $options['allow_self_signed'] = true;
         }
 

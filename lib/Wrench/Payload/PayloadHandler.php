@@ -4,13 +4,13 @@ namespace Wrench\Payload;
 
 use Wrench\Exception\PayloadException;
 use Wrench\Exception\ConnectionException;
-use Wrench\Util\Configurable;
 use \InvalidArgumentException;
+use Wrench\Server;
 
 /**
  * Handles chunking and splitting of payloads into frames
  */
-class PayloadHandler extends Configurable
+class PayloadHandler
 {
     /**
      * A callback that will be called when a complete payload is available
@@ -29,11 +29,10 @@ class PayloadHandler extends Configurable
      * @param array $options
      * @throws InvalidArgumentException
      */
-    public function __construct($callback, array $options = array())
+    public function __construct($callback)
     {
-        parent::__construct($options);
-
-        if (!is_callable($callback)) {
+        if (!is_callable($callback))
+        {
             throw new InvalidArgumentException('You must supply a callback to PayloadHandler');
         }
 
@@ -47,8 +46,9 @@ class PayloadHandler extends Configurable
      */
     public function handle($data)
     {
-        if (!$this->payload) {
-            $this->payload = $this->protocol->getPayload();
+        if (!$this->payload)
+        {
+            $this->payload = Server::getInstance()->getProtocol()->getPayload();
         }
 
         while ($data) { // Each iteration pulls off a single payload chunk
@@ -74,16 +74,18 @@ class PayloadHandler extends Configurable
 
             $this->payload->receiveData($chunk);
 
-            if ($remaining !== 0 && !$this->payload->isComplete()) {
+            if ($remaining !== 0 && !$this->payload->isComplete())
+            {
                 continue;
             }
 
-            if ($this->payload->isComplete()) {
+            if ($this->payload->isComplete())
+            {
                 $this->emit($this->payload);
-                $this->payload = $this->protocol->getPayload();
-            } else {
-                throw new PayloadException('Payload will not complete');
+                $this->payload = Server::getInstance()->getProtocol()->getPayload();
+                return true;
             }
+            throw new PayloadException('Payload will not complete');
         }
     }
 
