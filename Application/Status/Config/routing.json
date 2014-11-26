@@ -1,0 +1,11 @@
+{
+    "routing" : {
+        "default_route" : "status_main_dashboard",
+        "routes" : {
+            "status_main_dashboard" : {
+                "pattern" : "/dashboard",
+                "location" : "Views/index.html"
+            }
+        }
+    }
+}

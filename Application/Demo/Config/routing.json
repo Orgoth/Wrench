@@ -1,0 +1,11 @@
+{
+    "routing" : {
+        "default_route" : "demo_homepage",
+        "routes" : {
+            "demo_homepage" : {
+                "pattern" : "/homepage",
+                "path" : "Views/index.html"
+            }
+        }
+    }
+}
