@@ -4,7 +4,7 @@ namespace Wrench\Listener;
 
 use Wrench\Server;
 
-class RateLimiter implements Listener
+class RateLimiter
 {
     /**
      * Connection counts per IP address
@@ -39,7 +39,7 @@ class RateLimiter implements Listener
     /**
      * @see Wrench\Listener.Listener::listen()
      */
-    public function listen(Server $server)
+    public function listen()
     {
         $server = Server::getInstance();
 
@@ -100,9 +100,8 @@ class RateLimiter implements Listener
      */
     protected function checkConnections($connection)
     {
-        $connections = $connection->getConnectionManager()->count();
-
-        if ($connections > $this->options['connections']) {
+        if (Server::getInstance()->getConnectionManager()->count() > $this->options['connections'])
+        {
             $this->limit($connection, 'Max connections');
         }
     }

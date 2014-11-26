@@ -6,9 +6,9 @@ use Wrench\Connection;
 use Wrench\Exception\InvalidOriginException;
 use Wrench\Server;
 
-class OriginPolicy implements Listener, HandshakeRequestListener
+class OriginPolicy implements HandshakeRequestListener
 {
-    protected $allowed = array();
+    protected $allowed = [];
 
     public function __construct(array $allowed)
     {
@@ -66,9 +66,9 @@ class OriginPolicy implements Listener, HandshakeRequestListener
     /**
      * @param Server $server
      */
-    public function listen(Server $server)
+    public function listen()
     {
-        $server->addListener(
+        Server::getInstance()->addListener(
             Server::EVENT_HANDSHAKE_REQUEST,
             array($this, 'onHandshakeRequest')
         );

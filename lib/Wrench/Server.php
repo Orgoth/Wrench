@@ -187,11 +187,13 @@ class Server extends Configurable
             $connectionsPerIp,
             $requestsPerMinute
         );
+        $this->rateLimiter->listen();
     }
     
     public function setOriginPolicy($origins)
     {
         $this->originPolicy = new OriginPolicy($origins);
+        $this->originPolicy->listen();
     }
 
     /**

@@ -16,7 +16,7 @@ $loader = require __DIR__ . '/vendor/autoload.php';
 $server = Server::getInstance();
 $server->init('ws://localhost:8000/');
 $server->setRateLimiter(100, 6, 20000);
-$server->setOriginPolicy(['localhost', '127.0.0.1', '::1']);
+$server->setOriginPolicy(['http://www.wrench.local', 'http://wrench.local']);
 $server->registerApplication('demo', new DemoApplication);
 $server->registerApplication('status', new StatusApplication);
 $server->run();
