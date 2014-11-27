@@ -46,7 +46,7 @@
         
         public function display($color, $message)
         {
-            echo date('[H:G:i]')." \033[{$color}m $message \033[0m".PHP_EOL;
+            echo date('[H:i:s]')." \033[{$color}m $message \033[0m".PHP_EOL;
         }
         
         /**
