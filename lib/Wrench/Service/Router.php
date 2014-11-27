@@ -9,8 +9,8 @@
             
         }
         
-        public function load()
+        public function load($applicationName, $configFile)
         {
-            
+            return json_decode(file_get_contents("Application/$applicationName/Config/$configFile"), true);
         }
     }

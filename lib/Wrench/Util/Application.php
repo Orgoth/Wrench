@@ -9,8 +9,14 @@ abstract class Application
 {
     protected $events = [];
     protected $eventManager;
+    protected $routes;
     
-    
+    /**
+     * Send an event to the event Handler
+     * 
+     * @param string $type
+     * @param array $data
+     */
     public function onNotification($type, $data)
     {
         if(isset($this->events[$type]))
@@ -29,6 +35,7 @@ abstract class Application
     
     public function __construct()
     {
+        $this->configureRouting();
         $this->setEventManager();
     }
     

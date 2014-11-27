@@ -27,6 +27,11 @@ class StatusApplication extends Application
     {
         $this->eventManager = new StatusEvents($this);
     }
+    
+    public function configureRouting()
+    {
+        $this->routes = Server::getInstance()->getRouter()->load('Status', 'routing.json');
+    }
 
     public function onData($data, $client)
     {

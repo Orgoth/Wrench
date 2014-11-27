@@ -17,6 +17,7 @@ use Wrench\Listener\OriginPolicy;
 use Wrench\Service\ConnectionManager;
 use Wrench\Protocol\Rfc6455Protocol;
 use Wrench\Protocol\Protocol;
+use Wrench\Service\Router;
 
 /**
  * WebSocket server
@@ -90,6 +91,13 @@ class Server
      */
     protected $memoryManager;
     
+    /**
+     *  Router used for applications navigation
+     * 
+     * @var Router
+     */
+    protected $router;
+    
     /** @var RateLimiter **/
     protected $rateLimiter;
     
@@ -146,6 +154,7 @@ class Server
         $this->configureProtocol();
         $this->configureConnectionManager();
         $this->configureLogger();
+        $this->configureRouter();
         $this->configureMemoryManager();
     }
 
@@ -183,11 +192,29 @@ class Server
         $this->connectionManager = new ConnectionManager();
     }
     
+    /**
+     * Set the Router as a server module
+     */
+    protected function configureRouter()
+    {
+        $this->router = new Router();
+    }
+    
+    /**
+     * Configure the memory Manager
+     */
     protected function configureMemoryManager()
     {
         $this->memoryManager = new MemoryManager();
     }
     
+    /**
+     * Initialize the listener for rate limiter
+     * 
+     * @param int $maxClients
+     * @param int $connectionsPerIp
+     * @param int $requestsPerMinute
+     */
     public function setRateLimiter($maxClients, $connectionsPerIp, $requestsPerMinute)
     {
         $this->rateLimiter = new RateLimiter(
@@ -198,6 +225,11 @@ class Server
         $this->rateLimiter->listen();
     }
     
+    /**
+     * Initialize the listener to filter allowed origins
+     * 
+     * @param array $origins
+     */
     public function setOriginPolicy($origins)
     {
         $this->originPolicy = new OriginPolicy($origins);
@@ -392,5 +424,10 @@ class Server
     public function getProtocol()
     {
         return $this->protocol;
+    }
+    
+    public function getRouter()
+    {
+        return $this->router;
     }
 }
