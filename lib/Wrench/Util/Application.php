@@ -2,6 +2,8 @@
 
 namespace Wrench\Util;
 
+use Wrench\Connection;
+
 /**
  * Wrench Server Application
  */
@@ -31,7 +33,7 @@ abstract class Application
      * @param Payload $payload A payload object, that supports __toString()
      * @param Connection $connection
      */
-    abstract public function onData($payload, $connection);
+    abstract public function onData($payload, Connection $connection);
     
     public function __construct()
     {

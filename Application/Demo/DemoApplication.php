@@ -4,6 +4,7 @@ namespace Application\Demo;
 
 use Wrench\Util\Application;
 use Wrench\Interfaces\ApplicationRouting;
+use Wrench\Connection;
 use Wrench\Server;
 
 /**
@@ -14,7 +15,7 @@ class DemoApplication extends Application implements ApplicationRouting
     /**
      * @see Wrench\Util\Application::onData()
      */
-    public function onData($data, $client)
+    public function onData($data, Connection $client)
     {
         $client->send($data);
     }

@@ -4,6 +4,7 @@ namespace Application\Status;
 
 use Wrench\Util\Application;
 use Wrench\Connection;
+use Wrench\Protocol\Protocol;
 use Wrench\Server;
 
 use Wrench\Exception\HandshakeException;
@@ -33,17 +34,20 @@ class StatusApplication extends Application
         $this->routes = Server::getInstance()->getRouter()->load('Status', 'routing.json');
     }
 
-    public function onData($data, $client)
+    public function onData($data, Connection $client)
     {
         $payload = json_decode($data->getPayload());
-        if($payload->action === 'askInformations')
+        if(method_exists($this, $payload->action))
         {
-            $this->_sendServerInfo($client);
+            $this->{$payload->action}($client, $payload->data);
+            return true;
         }
-        elseif($payload->action === 'shutdown')
-        {
-            Server::getInstance()->shutdown();
-        }
+        $client->close(Protocol::CLOSE_DATA_INVALID);
+    }
+    
+    public function shutdown($client, $data)
+    {
+        Server::getInstance()->shutdown();
     }
 
     public function clientConnected($ip, $port)
