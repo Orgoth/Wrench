@@ -42,7 +42,7 @@
         
         $scope.askInformations = function()
         {
-            $scope.socket.send(JSON.stringify({"action" : "askInformations", "data" : ""}));
+            $scope.socket.send(JSON.stringify({"action" : "_sendServerInfo", "data" : ""}));
         };
         
         window.onbeforeunload = function (event)

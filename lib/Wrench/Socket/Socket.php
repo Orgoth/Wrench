@@ -261,41 +261,36 @@ abstract class Socket implements Resource
 
         do {
             // feof means socket has been closed
-            if (feof($this->socket)) {
+            if (feof($this->socket))
+            {
                 $this->disconnect();
-
                 return $buffer;
             }
-
-            $result = fread($this->socket, $length);
 
             // fread FALSE means socket has been closed
-            if ($result === false) {
+            if (($result = fread($this->socket, $length)) === false)
+            {
                 $this->disconnect();
-
                 return $buffer;
             }
-
             $buffer .= $result;
 
             // feof means socket has been closed
-            if (feof($this->socket)) {
+            if (feof($this->socket))
+            {
                 $this->disconnect();
-
                 return $buffer;
             }
-
             $continue = false;
 
-            if ($this->firstRead == true && strlen($result) == 1) {
+            if ($this->firstRead === true && strlen($result) == 1)
+            {
                 // Workaround Chrome behavior (still needed?)
                 $continue = true;
             }
             $this->firstRead = false;
 
-            if (strlen($result) == $length) {
-                $continue = true;
-            }
+            $continue = (strlen($result) == $length);
 
             // Continue if more data to be read
             $metadata = stream_get_meta_data($this->socket);

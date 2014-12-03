@@ -355,7 +355,7 @@ class Connection
     {
         $data = $this->socket->receive();
         $bytes = strlen($data);
-
+        
         if ($bytes === 0 || $data === false) {
             throw new CloseException('Error reading data from socket: ' . $this->socket->getLastError());
         }
