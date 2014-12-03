@@ -104,7 +104,7 @@ class Connection
     public function __construct(ServerClientSocket $socket)
     {
         $this->socket = $socket;
-
+        
         $this->configureClientInformation();
         $this->configurePayloadHandler();
 

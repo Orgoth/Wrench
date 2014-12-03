@@ -715,8 +715,8 @@ abstract class Protocol
 
         list($headers, $body) = $parts;
 
-        $return = array();
-        foreach (explode("\r\n", $headers) as $header)
+        $originalHeaders = explode("\r\n", $headers);
+        foreach ($originalHeaders as $header)
         {
             $parts = explode(': ', $header, 2);
             if (count($parts) == 2)
