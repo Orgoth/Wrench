@@ -377,15 +377,16 @@ class Server
      */
     public function getApplication($key)
     {
-        if (empty($key)) {
-            return false;
-        }
-
-        if (array_key_exists($key, $this->applications)) {
+        if ($this->hasApplication($key))
+        {
             return $this->applications[$key];
         }
-
         return false;
+    }
+    
+    public function hasApplication($key)
+    {
+        return isset($this->applications[$key]);
     }
 
     /**
@@ -402,6 +403,9 @@ class Server
         $this->log('Application added : '.$key, 'info');
     }
     
+    /**
+     * @return Server
+     */
     public static function getInstance()
     {
         if(self::$instance === null)
@@ -411,21 +415,33 @@ class Server
         return self::$instance;
     }
     
+    /**
+     * @return RateLimiter
+     */
     public function getRateLimiter()
     {
         return $this->rateLimiter;
     }
     
+    /**
+     * @return OriginPolicy
+     */
     public function getOriginPolicy()
     {
         return $this->originPolicy;
     }
     
+    /**
+     * @return Protocol
+     */
     public function getProtocol()
     {
         return $this->protocol;
     }
     
+    /**
+     * @return Router
+     */
     public function getRouter()
     {
         return $this->router;

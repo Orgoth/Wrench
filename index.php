@@ -35,10 +35,8 @@
     
     $frame = new HybiFrame();
     $payload = $frame->encode(json_encode([
-        'action' => '_sendServerInfo',
-        'data'   => [
-            'path' => $path
-        ]
+        'action' => '_sendTemplate',
+        'path' => $path
     ]))->getFrameBuffer();
     
     fputs($stream, $payload);

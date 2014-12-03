@@ -3,6 +3,8 @@
 namespace Wrench\Util;
 
 use Wrench\Connection;
+use Wrench\Server;
+use Wrench\Protocol\Protocol;
 
 /**
  * Wrench Server Application
@@ -27,18 +29,43 @@ abstract class Application
         }
     }
 
-    /**
-     * Handle data received from a client
-     *
-     * @param Payload $payload A payload object, that supports __toString()
-     * @param Connection $connection
-     */
-    abstract public function onData($payload, Connection $connection);
+    public function onData($data, Connection $client)
+    {
+        $payload = json_decode($data->getPayload());
+        if(method_exists($this, $payload->action))
+        {
+            $this->{$payload->action}($client, $payload);
+            return true;
+        }
+        $client->close(Protocol::CLOSE_DATA_INVALID);
+    }
     
     public function __construct()
     {
         $this->configureRouting();
         $this->setEventManager();
+    }
+    
+    public function _sendTemplate(Connection $client, $payload)
+    {
+        $server = Server::getInstance();
+        $pathParts = explode('/', $payload->path);
+        array_shift($pathParts);
+        $applicationName = array_shift($pathParts);
+        $route = (count($pathParts) > 0) ? implode('/', $pathParts) : null;
+        
+        if(($application = $server->getApplication($applicationName)) === false)
+        {
+            $client->close(Protocol::CLOSE_DATA_INVALID);
+        }
+        
+        if(($server->getRouter()->hasRoute($applicationName, $route)) === false)
+        {
+            $client->close(Protocol::CLOSE_DATA_INCONSISTENT);
+        }
+        
+        
+        $client->send($payload->path);
     }
     
     abstract public function setEventManager();

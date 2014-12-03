@@ -33,17 +33,6 @@ class StatusApplication extends Application
     {
         $this->routes = Server::getInstance()->getRouter()->load('Status', 'routing.json');
     }
-
-    public function onData($data, Connection $client)
-    {
-        $payload = json_decode($data->getPayload());
-        if(method_exists($this, $payload->action))
-        {
-            $this->{$payload->action}($client, $payload->data);
-            return true;
-        }
-        $client->close(Protocol::CLOSE_DATA_INVALID);
-    }
     
     public function shutdown($client, $data)
     {
@@ -95,7 +84,7 @@ class StatusApplication extends Application
             'text' => '[' . strftime('%m-%d %H:%M', time()) . '] ' . $text,
         ]));
     }
-
+    
     public function _sendServerInfo($client = null)
     {
         $server = Server::getInstance();
